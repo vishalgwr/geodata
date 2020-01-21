@@ -1,0 +1,65 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+@section featured {
+
+}
+<div class="mainContainer" style="min-height:500px;">
+    <table class="table table-striped" id="data-tables" style="width:100% !important;line-height:20px; font-size:12px;table-layout:fixed;" data-page-length='15'>
+		<thead>
+			<tr style="background-color:#3a5363; font-size:10px;">
+				<th style="color:#fff;width:50px;">Code</th>
+				<th style="color:#fff;">Trading Name</th>
+                <th style="color:#fff;">Last Processed On</th>
+                <th style="color:#fff;">File Modified On</th>
+				<th style="color:#fff;">Success Status</th>
+				<th style="color:#fff;">New Records</th>
+				<th style="color:#fff;">Failed Records</th>
+			</tr>
+		</thead>
+		<tbody>
+                @{    
+                    foreach (GeoDataReporting.Models.FileProcessedDetails item in ViewBag.Companies)
+                    {
+                        <tr @if(item.IsFileProcessedSuccessfully == false){<text>style="background-color:red;color: white;font-weight: bold;"</text>}>
+                            <td>@item.CompanyCode</td>
+                            <td>@item.TradingName</td>
+                            <td>@item.FileProcessedOn.Value.ToString("dd MMM yyyy hh:mm")</td>
+                            <td>@item.FileModifiedOn.Value.ToString("dd MMM yyyy hh:mm")</td>
+                            <td >@item.IsFileProcessedSuccessfully</td>
+                            <td>@item.NewProcessedRecords</td>
+                            <td>@item.FailedRecords</td>
+                        </tr>
+                    }
+                }
+		</tbody>
+	</table>
+
+</div>
+<div style="float:left;clear:both;width: 100%;">
+    <fieldset style="line-height: 25px;">
+        <legend>Other Info:</legend>
+        Total new records processed today: <span style="background-color:green;color:white;font-weight:bold;padding: 0 20px">@ViewBag.TodayProcessedCount</span>
+        <br />
+        Total failed records today: <span style="background-color:red;color:white;font-weight:bold;padding: 0 20px">@ViewBag.TodayFailedCount</span>
+  </fieldset>
+</div>
+
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#data-tables').dataTable({
+                'aaSorting': [],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                drawCallback: function () {
+                    $('.paginate_button, [name="data-tables_length"]', this.api().table().container())
+                        .on('click', function () {
+                            alert('next');
+                        });
+                }
+            });
+        });
+    </script>
+}

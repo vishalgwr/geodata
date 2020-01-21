@@ -1,0 +1,112 @@
+﻿@model IEnumerable<GeoDataReporting.Models.OrderLog>
+@{
+    ViewBag.Title = "OrderLog";
+}
+<script>
+    $(function () {
+        $("#example1").DataTable({
+
+            "lengthMenu": [100],
+        });
+    });
+</script>
+<style>
+    span {
+        margin: 10px;
+    }
+
+    .detail {
+        border: 2px solid dashed !importent;
+    }
+</style>  <div>
+    <a href="@string.Format("{0}{1}", "/GeodataReporting/", "OrderIDList")">
+        <img width="50px;" height="auto" src="~/Images/Home.png" />
+    </a>
+</div>
+<div>
+    @using (Html.BeginForm("GetOrderLog", "Home", FormMethod.Post))
+    {
+        <div class="row">
+            <div class="">
+                @Html.Label("frmLbl", "From Date")
+                @Html.TextBox("fromDate", string.Empty, new { @type = "date" })
+            </div>
+            <div class="">
+                @Html.Label("frmLbl", "To Date")
+                @Html.TextBox("toDate", string.Empty, new { @type = "date" })
+            </div>
+        </div>
+        <div>
+            <input type="submit" value="Submit" />
+        </div>
+    }
+</div>
+<div style="border-bottom:2px solid;width:25%;float:right;margin-bottom:15px;margin-right:5px">
+    <span><strong>Company : </strong>@ViewBag.Companey</span><span><strong>Rep ID : </strong>@ViewBag.Repid</span> <span><strong>BatchNo : </strong>@ViewBag.BatchNo</span>
+</div>
+<div class="box box-primary">
+
+    <div class="box-body">
+
+        <table id="example1" class="table table-bordered table-striped" style="table-layout: fixed; border: 1px solid #808080;">
+            <thead>
+                <tr>
+                    <th class="datatable-nosort">Company</th>
+                    <th class="datatable-nosort">Batch No</th>
+                    <th class="datatable-nosort">Order No</th>
+                    <th class="datatable-nosort">Order Date</th>
+                    <th class="datatable-nosort">Order Total</th>
+                    <th class="datatable-nosort">Order Total Gross</th>
+                    <th class="datatable-nosort">Created Date</th>
+                    <th class="datatable-nosort"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Company)
+                        </td>
+                        <td style="width: 39%;">
+                            @Html.DisplayFor(mbox => item.BatchNo)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderID)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderDate)
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderTotal)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderTotalGross)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.CreatedDate)
+                        </td>
+                        <td>
+                            <a href="@Url.Action("GetOrderDetail", "Home", new { BatchNo = item.BatchNo, Orderid = item.OrderID,companyname=ViewBag.Companey,repid=ViewBag.Repid })"> Show Detail</a>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+<style>
+    .content-wrapper {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+    td, tr {
+        border: 1px solid #808080;
+    }
+</style>

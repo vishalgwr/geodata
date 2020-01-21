@@ -1,0 +1,356 @@
+﻿
+@model IEnumerable<GeoDataReporting.Models.tblConfigModify>
+@{
+    ViewBag.Title = "ConfigModifyReport";
+}
+
+<div>
+           <a href="@string.Format("{0}{1}", "/GeodataReporting/", "OrderIDList")">
+               <img width="50px;" height="auto" src="~/Images/Home.png" /></a>
+       </div>
+<h1 style="padding-bottom:20px">Change Configuration Report </h1>   
+<script src="~/Scripts/jquery-1.7.1.js"></script>
+<script>
+    $(function () {
+        $("#example1").DataTable({
+
+
+        });
+    });
+</script>
+<style>
+    span {
+        margin:10px;
+    }
+.circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    font-size: 17px;
+    color: #000;
+    /*line-height: 140px;*/
+    text-align: center;
+    background: #FFf;
+    border:2px solid #f00;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+   
+}
+    .totfont {
+        color: #f00;
+         font-weight:700;
+          font-size: 25px;
+    }
+    .dayfont {
+         font-weight:400;
+    }
+</style>
+  
+  @*<div style="border-bottom:2px solid;width:35%;float:right;margin-bottom:15px;margin-right:5px"> 
+ <span><strong>Total Active Device : </strong>@ViewBag.Total</span>
+</div>*@
+<div>
+
+    @using (Html.BeginForm("ConfigModifyReport", "Home", FormMethod.Post))
+    {
+        <style>
+            .radio_container label {
+                display: inline-block;
+            }
+
+            .radio_container input {
+                display: inline-block;
+                width: auto;
+            }
+
+            td, tr {
+                padding-right: 10px;
+                padding-left: 10px;
+            }
+
+            .top td {
+                padding-left: 66px;
+            }
+
+            .totalclass {
+                position: absolute;
+                top: 70px;
+                background: aqua;
+                padding: 5px;
+                left: auto;
+                right: 52%;
+            }
+
+            .companyclass {
+                /*position: absolute;*/
+                padding: 7px 3px 73px;
+                top: 133px;
+            }
+
+            .logoff {
+                border: none;
+                border-bottom: 1px solid black;
+                background: none;
+                position: absolute;
+                top: 2%;
+                right: 1%;
+            }
+
+            #Batchno {
+                width: 287px;
+            }
+
+            .radio_container label {
+                display: inline-block;
+                width: 119px;
+            }
+
+            .Desciption {
+                 position: absolute;
+    top: 18%;
+    right: 14px;
+    border: 2px dashed;
+            }
+        </style>
+      
+        <div class="Filter">
+            <table class="top">
+                <tr>
+                    <td>
+                        <div id="r2" class="radio_container" style="border-bottom: 2px solid darkblue;">
+                            @Html.Label("lbl2", "Select Date Range")
+                            @Html.RadioButton("Type", "SelectedDate", true, new { @onClick = "validate(this)" })
+                        </div>
+                        <div class="">
+                            @Html.Label("frmLbl", "From Date")
+                            @Html.TextBox("fromDate", string.Empty, new { @type = "date" })
+                        </div>
+                        <div class="">
+                            @Html.Label("frmLbl", "To Date")
+                            @Html.TextBox("toDate", string.Empty, new { @type = "date" })
+                        </div>
+
+                    </td>
+
+                    <td>
+                        <div class="radio_container" id="r1" style="position: relative; top: -43px; right: 1px; border-bottom: 2px solid darkblue;">
+                            @Html.Label("lbl2", "Select Option")
+                            @Html.RadioButton("Type", "Defineddate", true, new { @onClick = "validate(this)" })
+                        </div>
+                        <div style="position: relative; top: -35px;">
+                            @Html.Label("frmlbl3", "Select Option")
+                            @Html.DropDownList("Option", new SelectList(
+                  new List<Object>{
+                         new { value = 1 , text = "Today"  },
+                         new { value = 2 , text = "Last 3 days" },
+                         new { value = 3 , text = "Last 7 days" },
+                         new { value = 15 , text = "Last 15 days" },
+                    },
+                  "value",
+                  "text",
+                   1), new { @class = "form-control", @style = "width: 100% !important;", @id = "ddlHeaderMenuType" })
+                        </div>
+
+                    </td>
+
+                    <td>
+                        <div class="radio_container companyclass">
+                            <div>
+                                @{ var InsigniaList = new SelectList(ViewBag.company, "Value", "Text", null);
+                                }
+                                @Html.Label("frmlbl4", "Select Company")
+                                @Html.DropDownList("company", (SelectList)InsigniaList, new { @class = "form-control", @style = "width: 50% !important;",  @onchange = "FillModel(this)" })
+                            </div>
+                            <div>
+                                @Html.Label("frmlbl5", "Select Repid")
+                                @Html.DropDownList("Repid", Enumerable.Empty<SelectListItem>(), "--Select Repid--", new { @class = "form-control", @style = "width: 30% !important;" })
+                            </div>
+                        </div>
+                        <div>
+                        </div>
+                    </td>
+                    <td>
+                    </td>
+
+                </tr>
+            </table>
+        </div>
+        
+ 
+        <div>
+            <ul style="vertical-align: auto">
+                <li style="list-style: none;">
+                    <input type="submit" value="Submit" />
+                </li>
+
+            </ul>
+
+
+        </div>
+        
+    }
+    
+</div>
+<div class="box box-primary">
+ 
+    <div class="box-body">
+      <div style="float: right;margin-right:3%;">
+        <table>
+            <tr style="font-weight:700">
+                   <td>Rec:</td>
+                   <td>@ViewBag.Total</td>
+            </tr>
+        </table>
+    </div>
+        <table id="example1" class="table table-bordered table-striped"">
+            <thead>
+                <tr>
+                    <th class="datatable-nosort">Company Id</th>
+                    <th class="datatable-nosort">Rep Id</th>
+                   <th class="datatable-nosort">User Name</th>
+                    <th class="datatable-nosort">Old Server</th>
+                    <th class="datatable-nosort">New Server</th>
+                    <th class="datatable-nosort">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Companyid)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.RepId)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.UserName)
+                        </td>
+                       <td>
+                            @Html.DisplayFor(mbox => item.OldServer)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.NewSever)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.CreateDate)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<style>
+    .content-wrapper {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+    td, tr {
+        border: 1px solid #808080;
+    }
+    .table{
+   overflow-y:scroll;
+  
+}
+
+</style>
+<style>
+    .content-wrapper {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+   .Top > tr, td,tbody  {
+        border: 0px solid #808080;
+    }
+
+    span.red_dot {
+        width: 10px;
+        height: 10px;
+        background: red;
+        display: inline-block;
+        border-radius: 100%;
+    }
+
+    span.green_dot {
+        width: 10px;
+        height: 10px;
+        background: #6BBD36;
+        display: inline-block;
+        border-radius: 100%;
+    }
+
+    .stock-level-details span.green_dot {
+        background: #6BBD36;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        var companyid = $('#company').val();
+        FillModel2(companyid);
+    });
+    function FillModel(e) {
+        var selectedValue = $(e).val();
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetRepid", "Home")",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            data: { "repid": selectedValue },
+            success: function (data) {
+                $("#Repid").empty();
+                var optionhtml1 = '<option value="' +
+                 0 + '">' + "--Select RepID--" + '</option>';
+                $("#Repid").append(optionhtml1);
+
+                $.each(data, function (i) {
+
+                    var optionhtml = '<option value="' +
+                data[i].Value + '">' + data[i].Text + '</option>';
+                    $("#Repid").append(optionhtml);
+                });
+            }
+        });
+
+
+    }
+    function validate(e) {
+        var id = e.parentElement.id;
+        if (id == "r1") {
+            $("#" + id).css("background", "#c3f1c3");
+            $("#r2").css("background", "#f2f2f2");
+        }
+        if (id == "r2") {
+            $("#" + id).css("background", "#c3f1c3");
+            $("#r1").css("background", "#f2f2f2");
+        }
+    }
+    function FillModel2(e) {
+
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetRepid", "Home")",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            data: { "repid": e },
+            success: function (data) {
+                $("#Repid").empty();
+                var optionhtml1 = '<option value="' +
+                 0 + '">' + "--Select RepID--" + '</option>';
+                $("#Repid").append(optionhtml1);
+
+                $.each(data, function (i) {
+
+                    var optionhtml = '<option value="' +
+                data[i].Value + '">' + data[i].Text + '</option>';
+                    $("#Repid").append(optionhtml);
+                });
+            }
+        });
+
+
+    }
+</script>
+

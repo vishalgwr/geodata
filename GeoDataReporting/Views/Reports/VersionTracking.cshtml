@@ -1,0 +1,391 @@
+﻿@model IEnumerable<GeoDataReporting.Models.UserDeviceDetail>
+@{
+    ViewBag.Title = "VersionTracking";
+
+    var groups = Model.GroupBy(d => d.AppVersion).OrderByDescending(o => o.Key).ToList();
+
+    var list = Model.Where(d => ViewBag.appVersion == null || d.AppVersion == ViewBag.appVersion);
+
+    if (ViewBag.serverName != null)
+    {
+        if (ViewBag.serverName == "msellergatewayp1.wclprod.com")
+        {
+            list = list.Where(d =>
+              ViewBag.serverName == d.ServerName);
+        }
+        else
+        {
+            list = list.Where(d =>
+             "msellergatewayp1.wclprod.com" != d.ServerName);
+        }
+    }
+
+    var IsShowAllBtn = Model.Select(s => s.CompanyId).Distinct().Count() > 1;
+}
+
+<h3 class="text-muted">Version Tracking</h3>
+@using (Html.BeginForm())
+{
+    <div class="row">
+        <div class="col-sm-4 pull-right">
+            <div class="row">
+                <div class="col-sm-2">
+                    <label>Search</label>
+                </div>
+                <div class="col-sm-7">
+                    <div class="form-group">
+                        @Html.TextBox("SearchKeyword", (ViewBag.searchKeyword as string), new { @placeholder = "Enter License Key", @class = "form-control" })
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <input type="submit" class="btn" value="Search" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 table-responsive">
+            <table class="table table-bordered table-striped" style="min-width:1000px;">
+                <thead>
+                    <tr>
+                        <th>Active users</th>
+                        @foreach (var group in groups)
+                        {
+                            <th> <u class="text-primary clickable" onclick="versionHeaderClick('@("elem" + group.Key.Replace('.', '_'))')"> Version @(group.Key ?? "Unknown")</u></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>@Model.Count()</th>
+                        @foreach (var group in groups)
+                        {
+                            <td> <button type="submit" name="AppVersion" class="btn btn-link" value="@group.Key">@group.Count()</button></td>
+                        }
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <label>Select Company</label>
+            @Html.DropDownList("CompanyId", null, "All", new { @class = "form-control" })
+        </div>
+        <div class="col-sm-3">
+            <label>User's Last Activity</label>
+            @Html.DropDownList("DaysOld", null, "All", new { @class = "form-control" })
+        </div>
+        <div class="col-sm-3">
+            <br />
+            <div class="checkbox">
+                <label>@Html.CheckBox("IncludeDemo", new { @class = "input-lg" }) Include Demo Licenses/Companies</label>
+            </div>
+        </div>
+        <div class="col-sm-2 pull-right">
+            @if (IsShowAllBtn)
+            {
+                <input type="button" data-target="#myModal2" data-toggle="modal" class="btn" id="btn1" value="Duplicate" />
+                <input type="button" data-target="#myModal" data-toggle="modal" class="btn" id="btn2" value="View All" />
+            }
+        </div>
+    </div>
+}
+<hr />
+<div class="row">
+    <div class="col-sm-12 table-responsive">
+        <table class="table" id="datatable">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>LicenseKey</th>
+                    <th>Type</th>
+                    <th>RepId</th>
+                    <th>UserName</th>
+                    <th>UserId</th>
+                    <th>FirstName</th>
+                    <th>LastName</th>
+                    @*<th class="hidden">User Email</th>*@
+                    <th>DeviceId</th>
+                    <th>LastSync</th>
+                    <th>AppVersion</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Suprevisor</th>
+                    <th>Layout_No</th>
+                    <th>Print_Format</th>
+                    <th>IsActive</th>
+                    <th>CreatedOn</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in list)
+                {
+                    <tr>
+                        <td>@item.CompanyName</td>
+                        <td>@item.LicenseKey</td>
+                        <td>@item.LicenseType</td>
+                        <td>@item.RepId</td>
+                        <td>@item.UserName</td>
+                        <td>@item.UserId</td>
+                        <td>@item.FirstName</td>
+                        <td>@item.LastName</td>
+                        @*<td class="hidden">@item.Email</td>*@
+                        <td>@item.DeviceId</td>
+                        <td>@Html.DisplayFor(m => item.LastSyncOn)</td>
+                        <td>@item.AppVersion</td>
+
+                        <td>@item.Email</td>
+                        <td>@item.Phone</td>
+                        <td>@(item.IsSupervisor == true ? "Yes" : "No")</td>
+                        <td>@item.Layout_no</td>
+                        <td>@item.Print_Format</td>
+                        <td>@(item.UserIsActive ? "Yes" : "No")</td>
+                        <td>@item.CreatedOn.Value.ToString("yyyy/MM/dd hh:mm:ss")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<!--Modal-->
+@{ var summary = Model;}
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-lg ">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Version Summary</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 table-responsive">
+                        <table class="table table-bordered table-striped table-condensed table-hover" id="dt-modal" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    @foreach (var group in groups)
+                                    {
+                                        <th class="@("elem" + group.Key.Replace('.', '_'))">v@(group.Key ?? "Unknown")</th>
+                                    }
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{var cgroups = summary.GroupBy(c => c.CompanyName).Select(g2 => new { Key = g2.Key, List = g2 });}
+                                @foreach (var cgroup in cgroups)
+                                {
+                                    <tr>
+                                        <td>@cgroup.Key</td>
+                                        @foreach (var group in groups)
+                                        {
+                                            <td class="@("elem" + group.Key.Replace('.', '_'))">@cgroup.List.Where(r => r.AppVersion == group.Key).Count()</td>
+                                        }
+                                        <td>@cgroup.List.Count()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th></th>
+                                    @foreach (var group in groups)
+                                    {
+                                        <th class="@("elem" + group.Key.Replace('.', '_'))">@group.Count()</th>
+                                    }
+                                    <th>@summary.Count()</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!--Model 2-->
+<div class="modal fade" id="myModal2" role="dialog">
+    <div class="modal-dialog modal-lg ">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Devices Grouped By RepId</h4>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#home">Details</a></li>
+                    <li><a data-toggle="tab" href="#menu1">Summary</a></li>
+                </ul>
+                <br />
+                <div class="tab-content">
+                    <div id="home" class="tab-pane fade in active">
+                        <div class="row">
+                            <div class="col-sm-12 table-responsive">
+                                @{
+                                    var dupgroup = Model.GroupBy(g => new { g.CompanyName, g.RepId }).Where(d => d.Count() > 1)
+                                        .OrderBy(o => o.Key.CompanyName);
+                                }
+                                <table class="table table-bordered table-striped table-condensed table-hover" id="dt-modal2">
+                                    <thead>
+                                        <tr>
+                                            <th>Company</th>
+                                            <th>License Key</th>
+                                            <th>Type</th>
+                                            <th>UserName(RepId)</th>
+                                            <th>DeviceId</th>
+                                            <th>Last Sync</th>
+                                            <th>App Version</th>
+                                            <th>Last Activity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var dupItem in dupgroup)
+                                        {
+                                            foreach (var item in dupItem.OrderBy(o => o.RepId))
+                                            {
+                                                <tr>
+                                                    <td>@item.CompanyName</td>
+                                                    <td>@item.LicenseKey</td>
+                                                    <td>@item.LicenseType</td>
+                                                    <td>@item.UserName (@item.RepId)</td>
+                                                    <td>@item.DeviceId</td>
+                                                    <td>@Html.DisplayFor(m => item.CreatedOn)</td>
+                                                    <td>@item.AppVersion</td>
+                                                    <td>Full Sync</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="menu1" class="tab-pane fade">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @{
+                                    var dupSummary = Model.GroupBy(g => new { g.CompanyName, g.RepId }, (k, res) => new { k.CompanyName, k.RepId, Count = res.Count(), Data = res })
+                                        .Where(d => d.Count > 1).SelectMany(rs1 => rs1.Data, (par, ch) => new { par.CompanyName, par.RepId, ch.LicenseKey })
+                                        .GroupBy(g2 => new { g2.LicenseKey, g2.CompanyName })
+                            .Select(s => new { s.Key.CompanyName, s.Key.LicenseKey, Count = s.Count() })
+                            //.SelectMany(sm => sm, (p,c) => new { p.Key.CompanyName, c.LicenseKey, Count = p.Count()}).Distinct()
+                            .OrderBy(o => o.LicenseKey)
+                            .ThenBy(o => o.CompanyName);
+                                }
+                                <table style="width:100%" class="table table-bordered table-striped table-condensed table-hover" id="dt-modal3">
+                                    <thead>
+                                        <tr>
+                                            <th>Company</th>
+                                            <th>License</th>
+                                            <th>Dup Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in dupSummary)
+                                        {
+                                            <tr>
+                                                <td>@item.CompanyName</td>
+                                                <td>@item.LicenseKey</td>
+                                                <td>@item.Count</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#datatable').dataTable({
+                'aaSorting': [],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+            });
+            $('#CompanyId, #DaysOld, #IncludeDemo').change(function () {
+                $(this).closest('form').submit()
+            });
+
+            $("#dt-modal").dataTable({
+                dom: 'lBfrtip',
+                buttons: [
+                    'csvHtml5'
+                ],
+                "paging": false,
+                "order": [[$('#dt-modal > thead th').length - 1, 'desc']]
+            })
+            $("#dt-modal2, #dt-modal3").dataTable({
+                dom: 'lBfrtip',
+                buttons: [
+                    'csvHtml5'
+                ],
+                "paging": false,
+                //"order": [[$('#dt-modal2 > thead th').length - 1, 'desc']]
+            })
+
+            //$('#myModal').on('show.bs.modal', function () {
+            //    console.log('about to be shown')
+            //})
+            $('#myModal').on('hidden.bs.modal', function () {
+                $('#dt-modal thead th, #dt-modal tbody td, #dt-modal tfoot th, #dt-modal tr').removeClass('hidden');
+            })
+        });
+
+        // added on 25 july 2019
+        function versionHeaderClick(col) {
+            console.log(col);
+            const len = $('#dt-modal thead th').length;
+            $('#dt-modal thead th, #dt-modal tbody td, #dt-modal tfoot th').each(function (i, e) {
+                //console.log(i, e.classList[0] === col || (i) % len === 0);
+                const el = $(e);
+                if (e.classList[0] !== col && (i) % len !== 0) {
+                    el.addClass('hidden');
+                }
+            });
+            // for tr
+            $('#dt-modal tr').each(function (i, e) {
+                let el = $(e).find('td:not(.hidden)')//1ind;
+                if (el.length && el.eq(1).text() == "0") {
+                    el.addClass('hidden');
+                }
+            });
+            $('#myModal').modal('show');
+        }
+
+    </script>
+    <style>
+        .text-lg {
+            font-size: large;
+            line-height: 100%;
+            padding-bottom: 2px
+        }
+
+        .modal-lg {
+            width: 1100px;
+        }
+
+        th .clickable {
+            cursor: pointer
+        }
+
+        #dt-modal {
+            width: 100%
+        }
+    </style>
+}

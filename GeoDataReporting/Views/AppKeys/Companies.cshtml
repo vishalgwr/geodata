@@ -1,0 +1,94 @@
+﻿@{
+    ViewBag.Title = "Companies";
+}
+@model IEnumerable<GeoDataReporting.Models.KeyValue>
+
+<div class="row">
+    <div class="col-sm-10">
+        <h3 class="text-muted">Company Log</h3>
+    </div>
+</div>
+
+@using (Html.BeginForm("Companies", "AppKeys", FormMethod.Post))
+{
+    <div class="row">
+        <div class="col-sm-3">
+            <label>Choose Key</label>
+            @Html.DropDownList("KeyName", new List<SelectListItem>() {
+           //new SelectListItem(){ Text = "CompanyName", Value = "Name" },
+           //new SelectListItem(){ Text = "CompanyCode", Value = "CompanyCode" },
+           new SelectListItem(){ Text = "Layout_No", Value = "Layout_No" },
+           new SelectListItem(){ Text = "Print_Format", Value = "Print_Format" },
+           //new SelectListItem(){ Text = "Image Char Replacement Enabled", Value = "ImgCharReplacementEnabled" },
+           //new SelectListItem(){ Text = "Image Replacement Char", Value = "ImgReplacementChar" },
+       }, "Select", new { @class = "form-control", required= "required" })
+            @*@Html.TextBox("KeyName", null, new { @class = "form-control" })*@
+        </div>
+        <div class="col-sm-3">
+            <label>Enter Value</label>
+            @*@Html.TextBox("Value", null, new { @class = "form-control", required = "required" })*@
+            @Html.TextBox("Value", null, new { @class = "form-control" })
+        </div>
+        @*<div class="col-sm-3">
+            <label>Match</label>
+            <label class="radio-inline">
+                Exact Match
+                @Html.RadioButton("ExactMatch", false, new { @class = "form-control-" })
+            </label>
+            <label class="radio-inline">
+                Begins With
+                @Html.RadioButton("ExactMatch", false, new { @class = "form-control-" })
+            </label>
+        </div>*@
+        <div class="col-sm-3">
+            <input type="submit" class="btn" value="Search" />
+        </div>
+    </div>
+}
+@if (Request.HttpMethod == "POST")
+{
+    <div class="row">
+        <div class="col-sm-12 table-responsive">
+            <table class="table" id="datatable">
+                <thead>
+                    <tr>
+                        <th>CompanyCode</th>
+                        <th>CompanyName</th>
+                        <th>KeyName</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr title="id: @item.CompanyId">
+                            <td>@item.CompanyCode</td>
+                            <td>@item.CompanyName</td>
+                            <td>@item.KeyName</td>
+                            <td>@item.Value</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section scripts
+{
+    <script>
+        $(function () {
+            $("#datatable").DataTable({
+                "lengthMenu": [100],
+                'aaSorting': []
+            });
+
+            $("#Value").blur(function ({ target: { value } }) {
+                if (value) {
+                    let v = value.toLowerCase().trim();
+                    this.value = v=='true'? '1' : v=='false'? '0': value
+                }
+            })
+        });
+    </script>
+}

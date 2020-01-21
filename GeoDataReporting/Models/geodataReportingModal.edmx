@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="dbGeodataModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="GeoDataProcessedCompany">
+          <Key>
+            <PropertyRef Name="CompanyCode" />
+          </Key>
+          <Property Name="CompanyCode" Type="int" Nullable="false" />
+          <Property Name="EnableProcessing" Type="bit" Nullable="false" />
+          <Property Name="IsProcessing" Type="bit" Nullable="false" />
+          <Property Name="StartedAt" Type="datetime" />
+          <Property Name="EndedAt" Type="datetime" />
+          <Property Name="CreatedOn" Type="datetime" Nullable="false" />
+          <Property Name="LastProcessed" Type="datetime" />
+          <Property Name="StatusMessage" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="GeoDataProcessedCustomer">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CompanyCode" Type="int" Nullable="false" />
+          <Property Name="Acc_ref" Type="nvarchar" MaxLength="30" Nullable="false" />
+          <Property Name="DeliveryAddr" Type="nvarchar" MaxLength="100" />
+          <Property Name="CustName" Type="nvarchar" MaxLength="100" />
+          <Property Name="Addr1" Type="nvarchar" MaxLength="100" />
+          <Property Name="Addr2" Type="nvarchar" MaxLength="100" />
+          <Property Name="Addr3" Type="nvarchar" MaxLength="100" />
+          <Property Name="Addr4" Type="nvarchar" MaxLength="100" />
+          <Property Name="Addr5" Type="nvarchar" MaxLength="100" />
+          <Property Name="PostCode" Type="nvarchar" MaxLength="30" />
+          <Property Name="Lat" Type="decimal" Precision="9" Scale="6" Nullable="false" />
+          <Property Name="Lng" Type="decimal" Precision="9" Scale="6" Nullable="false" />
+          <Property Name="CreatedOn" Type="datetime" Nullable="false" />
+          <Property Name="LastProcessed" Type="datetime" />
+          <Property Name="Hit" Type="bit" Nullable="false" />
+          <Property Name="IsResultFound" Type="bit" Nullable="false" />
+          <Property Name="LookupAddress" Type="nvarchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="UserActivityTracking">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ActivityType" Type="nvarchar" MaxLength="10" />
+          <Property Name="CompanyCode" Type="int" Nullable="false" />
+          <Property Name="RepId" Type="int" />
+          <Property Name="LoggedInUser" Type="nvarchar" MaxLength="100" />
+          <Property Name="ActivityDetail" Type="nvarchar(max)" />
+          <Property Name="CreatedOn" Type="datetime" />
+        </EntityType>
+        <Association Name="FK__GeoDataPr__Compa__412EB0B6">
+          <End Role="GeoDataProcessedCompany" Type="Self.GeoDataProcessedCompany" Multiplicity="1" />
+          <End Role="GeoDataProcessedCustomer" Type="Self.GeoDataProcessedCustomer" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GeoDataProcessedCompany">
+              <PropertyRef Name="CompanyCode" />
+            </Principal>
+            <Dependent Role="GeoDataProcessedCustomer">
+              <PropertyRef Name="CompanyCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="dbGeodataModelStoreContainer">
+          <EntitySet Name="GeoDataProcessedCompany" EntityType="Self.GeoDataProcessedCompany" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="GeoDataProcessedCustomer" EntityType="Self.GeoDataProcessedCustomer" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserActivityTracking" EntityType="Self.UserActivityTracking" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__GeoDataPr__Compa__412EB0B6" Association="Self.FK__GeoDataPr__Compa__412EB0B6">
+            <End Role="GeoDataProcessedCompany" EntitySet="GeoDataProcessedCompany" />
+            <End Role="GeoDataProcessedCustomer" EntitySet="GeoDataProcessedCustomer" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="dbGeodataModel" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="dbGeodataEntities" p1:LazyLoadingEnabled="true">
+          <EntitySet Name="GeoDataProcessedCompanies" EntityType="dbGeodataModel.GeoDataProcessedCompany" />
+          <EntitySet Name="GeoDataProcessedCustomers" EntityType="dbGeodataModel.GeoDataProcessedCustomer" />
+          <AssociationSet Name="FK__GeoDataPr__Compa__412EB0B6" Association="dbGeodataModel.FK__GeoDataPr__Compa__412EB0B6">
+            <End Role="GeoDataProcessedCompany" EntitySet="GeoDataProcessedCompanies" />
+            <End Role="GeoDataProcessedCustomer" EntitySet="GeoDataProcessedCustomers" />
+          </AssociationSet>
+          <EntitySet Name="UserActivityTrackings" EntityType="dbGeodataModel.UserActivityTracking" />
+        </EntityContainer>
+        <EntityType Name="GeoDataProcessedCompany">
+          <Key>
+            <PropertyRef Name="CompanyCode" />
+          </Key>
+          <Property Name="CompanyCode" Type="Int32" Nullable="false" />
+          <Property Name="EnableProcessing" Type="Boolean" Nullable="false" />
+          <Property Name="IsProcessing" Type="Boolean" Nullable="false" />
+          <Property Name="StartedAt" Type="DateTime" Precision="3" />
+          <Property Name="EndedAt" Type="DateTime" Precision="3" />
+          <Property Name="CreatedOn" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastProcessed" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="GeoDataProcessedCustomers" Relationship="dbGeodataModel.FK__GeoDataPr__Compa__412EB0B6" FromRole="GeoDataProcessedCompany" ToRole="GeoDataProcessedCustomer" />
+          <Property Name="StatusMessage" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="GeoDataProcessedCustomer">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CompanyCode" Type="Int32" Nullable="false" />
+          <Property Name="Acc_ref" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Name="DeliveryAddr" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="CustName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Addr1" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Addr2" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Addr3" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Addr4" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Addr5" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="PostCode" Type="String" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Name="Lat" Type="Decimal" Nullable="false" Precision="9" Scale="6" />
+          <Property Name="Lng" Type="Decimal" Nullable="false" Precision="9" Scale="6" />
+          <Property Name="CreatedOn" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastProcessed" Type="DateTime" Precision="3" />
+          <Property Name="Hit" Type="Boolean" Nullable="false" />
+          <Property Name="IsResultFound" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="GeoDataProcessedCompany" Relationship="dbGeodataModel.FK__GeoDataPr__Compa__412EB0B6" FromRole="GeoDataProcessedCustomer" ToRole="GeoDataProcessedCompany" />
+          <Property Name="LookupAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <Association Name="FK__GeoDataPr__Compa__412EB0B6">
+          <End Type="dbGeodataModel.GeoDataProcessedCompany" Role="GeoDataProcessedCompany" Multiplicity="1" />
+          <End Type="dbGeodataModel.GeoDataProcessedCustomer" Role="GeoDataProcessedCustomer" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GeoDataProcessedCompany">
+              <PropertyRef Name="CompanyCode" />
+            </Principal>
+            <Dependent Role="GeoDataProcessedCustomer">
+              <PropertyRef Name="CompanyCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="UserActivityTracking">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ActivityType" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="CompanyCode" Type="Int32" Nullable="false" />
+          <Property Name="RepId" Type="Int32" />
+          <Property Name="LoggedInUser" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ActivityDetail" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedOn" Type="DateTime" Precision="3" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="dbGeodataModelStoreContainer" CdmEntityContainer="dbGeodataEntities">
+          <EntitySetMapping Name="GeoDataProcessedCompanies">
+            <EntityTypeMapping TypeName="dbGeodataModel.GeoDataProcessedCompany">
+              <MappingFragment StoreEntitySet="GeoDataProcessedCompany">
+                <ScalarProperty Name="StatusMessage" ColumnName="StatusMessage" />
+                <ScalarProperty Name="LastProcessed" ColumnName="LastProcessed" />
+                <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
+                <ScalarProperty Name="EndedAt" ColumnName="EndedAt" />
+                <ScalarProperty Name="StartedAt" ColumnName="StartedAt" />
+                <ScalarProperty Name="IsProcessing" ColumnName="IsProcessing" />
+                <ScalarProperty Name="EnableProcessing" ColumnName="EnableProcessing" />
+                <ScalarProperty Name="CompanyCode" ColumnName="CompanyCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="GeoDataProcessedCustomers">
+            <EntityTypeMapping TypeName="dbGeodataModel.GeoDataProcessedCustomer">
+              <MappingFragment StoreEntitySet="GeoDataProcessedCustomer">
+                <ScalarProperty Name="LookupAddress" ColumnName="LookupAddress" />
+                <ScalarProperty Name="IsResultFound" ColumnName="IsResultFound" />
+                <ScalarProperty Name="Hit" ColumnName="Hit" />
+                <ScalarProperty Name="LastProcessed" ColumnName="LastProcessed" />
+                <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
+                <ScalarProperty Name="Lng" ColumnName="Lng" />
+                <ScalarProperty Name="Lat" ColumnName="Lat" />
+                <ScalarProperty Name="PostCode" ColumnName="PostCode" />
+                <ScalarProperty Name="Addr5" ColumnName="Addr5" />
+                <ScalarProperty Name="Addr4" ColumnName="Addr4" />
+                <ScalarProperty Name="Addr3" ColumnName="Addr3" />
+                <ScalarProperty Name="Addr2" ColumnName="Addr2" />
+                <ScalarProperty Name="Addr1" ColumnName="Addr1" />
+                <ScalarProperty Name="CustName" ColumnName="CustName" />
+                <ScalarProperty Name="DeliveryAddr" ColumnName="DeliveryAddr" />
+                <ScalarProperty Name="Acc_ref" ColumnName="Acc_ref" />
+                <ScalarProperty Name="CompanyCode" ColumnName="CompanyCode" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserActivityTrackings">
+            <EntityTypeMapping TypeName="dbGeodataModel.UserActivityTracking">
+              <MappingFragment StoreEntitySet="UserActivityTracking">
+                <ScalarProperty Name="CreatedOn" ColumnName="CreatedOn" />
+                <ScalarProperty Name="ActivityDetail" ColumnName="ActivityDetail" />
+                <ScalarProperty Name="LoggedInUser" ColumnName="LoggedInUser" />
+                <ScalarProperty Name="RepId" ColumnName="RepId" />
+                <ScalarProperty Name="CompanyCode" ColumnName="CompanyCode" />
+                <ScalarProperty Name="ActivityType" ColumnName="ActivityType" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+        <DesignerProperty Name="UseLegacyProvider" Value="True" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

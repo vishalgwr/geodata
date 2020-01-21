@@ -1,0 +1,136 @@
+﻿@model IEnumerable<GeoDataReporting.Models.FullUPdateLog>
+@{
+    ViewBag.Title = "GetDeviceLog";
+}
+
+<div>
+           <a href="@string.Format("{0}{1}", "/GeodataReporting/", "OrderIDList")">
+               <img width="50px;" height="auto" src="~/Images/Home.png" /></a>
+       </div>
+<h1 style="padding-bottom:20px">Active Device</h1>   
+<script src="~/Scripts/jquery-1.7.1.js"></script>
+<script>
+    $(function () {
+        $("#example1").DataTable({
+
+
+        });
+    });
+</script>
+<style>
+    span {
+        margin:10px;
+    }
+.circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    font-size: 17px;
+    color: #000;
+    /*line-height: 140px;*/
+    text-align: center;
+    background: #FFf;
+    border:2px solid #f00;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+   
+}
+    .totfont {
+        color: #f00;
+         font-weight:700;
+          font-size: 25px;
+    }
+    .dayfont {
+         font-weight:400;
+    }
+</style>
+  
+  @*<div style="border-bottom:2px solid;width:35%;float:right;margin-bottom:15px;margin-right:5px"> 
+ <span><strong>Total Active Device : </strong>@ViewBag.Total</span>
+</div>*@
+<div class="box box-primary">
+ 
+    <div class="box-body">
+      <div style="float:right">
+          <div>
+              <ul>
+                  <li style="list-style:none;display:inline-block""><div class="circle"><span class="dayfont">@DateTime.Now.Date.AddDays(-5).ToString("dd MMM")</span></br><span class="totfont">@ViewBag.Total1</span></div></li>
+                  <li style="list-style:none;display:inline-block""><div class="circle"><span class="dayfont">@DateTime.Now.Date.AddDays(-4).ToString("dd MMM")</span></br><span class="totfont">@ViewBag.Total2</span></div></li>
+                  <li style="list-style:none;display:inline-block""><div class="circle"><span class="dayfont">@DateTime.Now.Date.AddDays(-3).ToString("dd MMM")</span></br><span class="totfont">@ViewBag.Total3</span></div></li>
+                  <li style="list-style:none;display:inline-block""><div class="circle"><span class="dayfont">@DateTime.Now.Date.AddDays(-2).ToString("dd MMM")</span></br><span class="totfont">@ViewBag.Total4</span></div></li>
+                  <li style="list-style:none;display:inline-block""><div class="circle"><span class="dayfont">@DateTime.Now.Date.AddDays(-1).ToString("dd MMM")</span></br><span class="totfont">@ViewBag.Total5</span></div></li>
+                  <li style="list-style:none;display:inline-block"><div class="circle"><span class="dayfont">@DateTime.Now.Date.ToString("dd MMM")</span></br><span class="totfont">@ViewBag.Total</span></div></li>
+              </ul>
+          </div>
+          @*<div>
+              <label>Select Date</label>
+
+          
+                            @Html.Label("frmlbl3", "Select Option")
+                            @Html.DropDownList("Option", new SelectList(
+                  new List<Object>{
+                         new { value = 1 , text = "Today"  },
+                         new { value = 2 , text = "Last 3 days" },
+                         new { value = 3 , text = "Last 7 days" },
+                      
+                       
+                    },
+                  "value",
+                  "text",
+                   1), new { @class = "form-control", @style = "width: 10% !important;", @id = "ddlHeaderMenuType" })
+                        </div>*@
+          
+      </div>
+        <table id="example1" class="table table-bordered table-striped"">
+            <thead>
+
+                <tr>
+                    <th class="datatable-nosort">Company</th>
+                    <th class="datatable-nosort">LicenseId</th>
+                   <th class="datatable-nosort">Deviceid</th>
+                    <th class="datatable-nosort">Log Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                       
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(mbox => item.CompanyName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.LicenseKey)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.DeviceId)
+                        </td>
+                       <td>
+                            @Html.DisplayFor(mbox => item.LogDate)
+                        </td>
+                        
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+<style>
+    .content-wrapper {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+    td, tr {
+        border: 1px solid #808080;
+    }
+    table{
+   overflow-y:scroll;
+   display:block;
+}
+</style>
+

@@ -1,0 +1,366 @@
+﻿@model IEnumerable<GeoDataReporting.Models.SubOrderLog>
+@{
+    ViewBag.Title = "OrderLog";
+}
+<div>
+    <a href="@string.Format("{0}{1}", "/GeodataReporting/", "OrderIDList")">
+        <img width="50px;" height="auto" src="~/Images/Home.png" />
+    </a>
+</div>
+<h1 style="padding-bottom:20px">Order Detail</h1>
+<script src="~/Scripts/jquery-1.7.1.js"></script>
+<script>
+    $(function () {
+        $("#example1").DataTable({});
+    });
+</script>
+<style>
+    span {
+        margin: 10px;
+    }
+    .radio_container label {
+        display: inline-block;
+    }
+
+    .radio_container input {
+        display: inline-block;
+        width: auto;
+    }
+
+    td, tr {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    .top td {
+        padding-left: 66px;
+    }
+
+    .totalclass {
+        position: absolute;
+        top: 70px;
+        background: aqua;
+        padding: 5px;
+        left: auto;
+        right: 52%;
+    }
+
+    .companyclass {
+        position: absolute;
+        padding: 11px;
+        top: 133px;
+    }
+
+    .logoff {
+        border: none;
+        border-bottom: 1px solid black;
+        background: none;
+        position: absolute;
+        top: 2%;
+        right: 1%;
+    }
+
+    #Batchno {
+        width: 287px;
+    }
+
+    .radio_container label {
+        display: inline-block;
+        width: 119px;
+    }
+
+    .Desciption {
+        position: absolute;
+        top: 18%;
+        right: 14px;
+        border: 2px dashed;
+    }
+</style>
+<div>
+
+    @using (Html.BeginForm("GetOrderList", "Home", FormMethod.Post))
+    {
+        <div>
+            <a href="@string.Format("{0}{1}", "/", "OrderIDList")">
+                <img width="50px;" height="auto" src="~/Images/Home.png" />
+            </a>
+        </div>
+        <div>
+            <table class="top">
+                <tr>
+                    <td>
+                        <div id="r2" class="radio_container" style="border-bottom: 2px solid darkblue;">
+                            @Html.Label("lbl2", "Select Date Range")
+                            @Html.RadioButton("Type", "SelectedDate", true, new { @onClick = "validate(this)" })
+                        </div>
+                        <div class="">
+                            @Html.Label("frmLbl", "From Date")
+                            @Html.TextBox("fromDate", string.Empty, new { @type = "date" })
+                        </div>
+                        <div class="">
+                            @Html.Label("frmLbl", "To Date")
+                            @Html.TextBox("toDate", string.Empty, new { @type = "date" })
+                        </div>
+
+                    </td>
+
+                    <td>
+                        <div class="radio_container" id="r1" style="position: relative; top: -43px; right: 1px; border-bottom: 2px solid darkblue;">
+                            @Html.Label("lbl2", "Select Option")
+                            @Html.RadioButton("Type", "Defineddate", true, new { @onClick = "validate(this)" })
+                        </div>
+                        <div style="position: relative; top: -35px;">
+                            @Html.Label("frmlbl3", "Select Option")
+                            @Html.DropDownList("Option", new SelectList(
+                  new List<Object>{
+                         new { value = 1 , text = "Today"  },
+                         new { value = 2 , text = "Last 3 days" },
+                         new { value = 3 , text = "Last 7 days" },
+
+
+                    },
+                  "value",
+                  "text",
+                   1), new { @class = "form-control", @style = "width: 100% !important;", @id = "ddlHeaderMenuType" })
+                        </div>
+
+                    </td>
+
+                    <td>
+                        <div class="radio_container companyclass">
+                            <div>
+                                @{ var InsigniaList = new SelectList(ViewBag.company, "Value", "Text", null);
+                                }
+                                @Html.Label("frmlbl4", "Select Company")
+                                @Html.DropDownList("company", (SelectList)InsigniaList, new { @class = "form-control", @style = "width: 50% !important;", @onchange = "FillModel(this)" })
+                            </div>
+                            <div>
+                                @Html.Label("frmlbl5", "Select Repid")
+                                @Html.DropDownList("Repid", Enumerable.Empty<SelectListItem>(), "--Select Repid--", new { @class = "form-control", @style = "width: 30% !important;" })
+                            </div>
+                        </div>
+                        <div>
+                        </div>
+                    </td>
+                    <td>
+
+                        <div class="totalclass">
+                            <span><strong>Total Record</strong> @ViewBag.noOfOrder</span>
+                        </div>
+
+                    </td>
+
+                </tr>
+            </table>
+        </div>
+
+
+        <div>
+            <ul style="vertical-align: auto">
+                <li style="list-style: none;">
+                    <input type="submit" value="Submit" />
+                </li>
+
+            </ul>
+
+
+        </div>
+        <div class="Desciption">
+            <table>
+
+                <tr style="background: #f1fb92">
+                    <td><strong>Save Transaction</strong></td>
+                </tr>
+                <tr style="background: #f1fb92">
+                    <td><span class="red_dot"></span>Transaction is not saved after creating </td>
+                </tr>
+                <tr style="background: #f1fb92">
+                    <td><span class="green_dot"></span>Transaction is saved after creating </td>
+                </tr>
+                <tr style="background: #f1fb92">
+                    <td><strong>Send Transaction</strong></td>
+
+                </tr>
+                <tr style="background: #f1fb92">
+                    <td><span class="green_dot"></span>Transation is send after creating</td>
+                </tr>
+
+
+                <tr style="background: #f1fb92">
+                    <td><span class="red_dot"></span>Transation is not send after creating</td>
+                </tr>
+            </table>
+        </div>
+    }
+    <div style="float: right">
+        <ul>
+            <li style="list-style: none">
+                @using (Html.BeginForm("GetOrderList2", "Home", FormMethod.Post))
+                {
+                    <button type="submit">Search</button>
+                    @Html.TextBox("Batchno", string.Empty, new { @placeholder = "Enter OrderId or Batch No" })
+
+
+                }
+            </li>
+        </ul>
+    </div>
+</div>
+<div style="border-bottom:2px solid;width:35%;float:right;margin-bottom:15px;margin-right:5px">
+    <span><strong>Company : </strong>@ViewBag.companyname</span><span><strong>Rep ID : </strong>@ViewBag.repid</span>  <span><strong>Batch No : </strong> @ViewBag.BatchNo</span>  <span><strong> Order No : </strong>@ViewBag.Orderid</span>
+</div>
+<div class="box box-primary">
+
+    <div class="box-body">
+
+        <table id="example1" class="table table-bordered table-striped" style="table-layout: fixed; border: 1px solid #808080;">
+            <thead>
+
+                <tr>
+                    <th class="datatable-nosort">Company</th>
+                    <th class="datatable-nosort">OrderId</th>
+                    <th class="datatable-nosort">BatchNo</th>
+                    <th class="datatable-nosort">OrderLinePriceType</th>
+                    <th class="datatable-nosort">OrderLineType</th>
+                    <th class="datatable-nosort">Priceband</th>
+                    <th class="datatable-nosort">ProductID</th>
+                    <th class="datatable-nosort">Quantity</th>
+                    <th class="datatable-nosort">RequiredDate</th>
+                    <th class="datatable-nosort">SalePrice</th>
+                    <th class="datatable-nosort">UnitPrice</th>
+                    <th class="datatable-nosort">Barcode</th>
+                    <th class="datatable-nosort">BasePrice</th>
+                    <th class="datatable-nosort">DateSold</th>
+                    <th class="datatable-nosort">DeliveryAddressCode</th>
+                    <th class="datatable-nosort">Disc</th>
+                    <th class="datatable-nosort">ExpectedDate</th>
+                    <th class="datatable-nosort">IsSend</th>
+                    <th class="datatable-nosort">Line_Inner</th>
+                    <th class="datatable-nosort">Line_No</th>
+                    <th class="datatable-nosort">Line_Outer</th>
+                    <th class="datatable-nosort">Linetext</th>
+                    <th class="datatable-nosort">LineTotal</th>
+                    <th class="datatable-nosort">CreatedDate</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Company)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderId)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.BatchNo)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderLinePriceType)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderLineType)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Priceband)
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(mbox => item.ProductID)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Quantity)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.RequiredDate)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.SalePrice)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.UnitPrice)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Barcode)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.BasePrice)
+
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(mbox => item.DateSold)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.DeliveryAddressCode)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Disc)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.ExpectedDate)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.IsSend)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Line_Inner)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Line_No)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Line_Outer)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Linetext)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.LineTotal)
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.CreatedDate)
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+<style>
+    .content-wrapper {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+    td, tr {
+        border: 1px solid #808080;
+    }
+
+    table {
+        overflow-y: scroll;
+        display: block;
+    }
+</style>

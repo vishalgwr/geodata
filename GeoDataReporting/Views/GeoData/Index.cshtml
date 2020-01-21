@@ -1,0 +1,205 @@
+﻿@model IEnumerable<GeoDataReporting.Models.GeoDataProcessedCompany>
+@{
+    ViewBag.Title = "GeoData";
+    Dictionary<int, String> dic = ViewBag.Companies;
+}
+
+<div class="mainContainer" style="min-height:500px;">
+    <h3 class="text-muted">Geo Data Report</h3>
+    <table class="table table-striped" id="data-tables" style="width:100% !important;line-height:20px; font-size:12px;table-layout:fixed;" >
+        <thead>
+            <tr style="background-color:#3a5363; font-size:10px;">
+                <th style="color:#fff;width:100px;">Code</th>
+                <th style="color:#fff;">Trading Name</th>
+                <th style="color:#fff;">Process Started On</th>
+                <th style="color:#fff;">File Modified On</th>
+                <th style="color:#fff;">Last Processed On</th>
+                <th style="color:#fff;width:130px;">Current Status</th>
+                <th style="color:#fff;width:150px;">Enable Processing</th>
+                @*<th style="color:#fff;width:100px;"></th>*@
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var swithcId = string.Format("sw_{0}", item.CompanyCode);
+                <tr>
+                    <td>@item.CompanyCode</td>
+                    <td>@(dic.ContainsKey(item.CompanyCode) ? dic[item.CompanyCode] : "")</td>
+                    <td>@item.StartedAt</td>
+                    <td>@item.EndedAt</td>
+                    <td>
+                        @if (item.LastProcessed == null)
+                        {
+                            <strong>--</strong>
+                        }
+                        else
+                        {
+                            var t = (DateTime.Now - item.LastProcessed.Value);
+                            var msg = item.StatusMessage+" records processed ";
+                            if (t.Days > 0)
+                            {
+                                msg += t.Days+" day(s) ago.";
+                            }
+                            else if (t.Hours > 0)
+                            {
+                                msg += t.Hours + " hour(s) ago.";
+                            }
+                            else if (t.Minutes > 0)
+                            {
+                                msg += t.Minutes + " minute(s) ago.";
+                            }
+                            else
+                            {
+                                msg = t.Seconds + " second(s) ago.";
+                            }
+                            <strong> <span class="badge"> @msg</span> </strong>
+                        }
+                    </td>
+                    <td>
+                        @if (item.IsProcessing)
+                        {
+                            <img height="20" title="processing" src="~/Content/img/infinite-progress.gif" />
+                        }
+                        @*else if (item.StartedAt != null && item.EndedAt == null)
+                        {
+                            <strong class="text-danger"><span class="glyphicon glyphicon-alert"></span> Failed</strong>
+                        }*@
+                        else if (item.StartedAt != null && item.EndedAt == null)
+                        {
+                            <strong class="text-warning"><span class="glyphicon glyphicon-pause"></span> Paused</strong>
+                        }
+                        else if (item.StartedAt != null && item.EndedAt != null)
+                        {
+                            <strong class="text-success"><span class="glyphicon glyphicon-ok-circle"></span> Success</strong>
+                        }
+                        else
+                        {
+                            <strong>--</strong>
+                        }
+                    </td>
+                    <td>
+                        <label class="label">
+                            <span class="toggle">
+                                <input class="toggle-state" @(item.EnableProcessing ? "checked" : "") type="checkbox" id="@swithcId"
+                                       onchange="onToggleProcessing(this,@item.CompanyCode)" />
+                                <span class="toggle-inner">
+                                    <span class="indicator"></span>
+                                </span>
+                                <span class="active-bg"></span>
+                            </span>
+                            <span class="label-text"></span>
+                        </label>
+                    </td>
+                    @*<td>@Html.ActionLink("View","GeoDataList",new { Id = item.CompanyCode })</td>*@
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+@*<div style="float:left;clear:both;width: 100%;">
+        <fieldset style="line-height: 25px;">
+            <legend>Other Info:</legend>
+            Total new records processed today: <span style="background-color:green;color:white;font-weight:bold;padding: 0 20px">@ViewBag.TodayProcessedCount</span>
+            <br />
+            Total failed records today: <span style="background-color:red;color:white;font-weight:bold;padding: 0 20px">@ViewBag.TodayFailedCount</span>
+        </fieldset>
+    </div>*@
+
+@{
+    var cpc = @Model.SingleOrDefault(c => c.IsProcessing);
+    var cpcc = cpc == null ? 0 : cpc.CompanyCode;
+}
+@section scripts
+{
+    <script type="text/javascript">
+        let currentProcessingCompany = @cpcc;
+        $(document).ready(function () {
+            $('#data-tables').dataTable({
+                "lengthMenu": [[50, -1], [50, "All"]]
+            });
+        });
+        function onToggleProcessing(chk, cid) {
+            $.post('@Url.Action("ToggleProcessing")/' + cid)
+                .then(res => {
+                    $('#sw_' + cid).prop('checked', res);
+                })
+                .fail(err => {
+                    $('#sw_' + cid).prop('checked', !chk.checked);
+                });
+        }
+        setInterval(() => {
+            $.get('@Url.Action("ProcessingCompany")')
+                .then(cpcc => {
+                    if (cpcc != currentProcessingCompany) {
+                        location.reload();
+                    }
+                });
+        },5000)
+    </script>
+    <style>
+        .label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .label-text {
+            margin-left: 8px;
+        }
+
+        .toggle {
+            isolation: isolate;
+            position: relative;
+            height: 24px;
+            width: 48px;
+            border-radius: 15px;
+            background: #d6d6d6;
+            overflow: hidden;
+        }
+
+        .toggle-inner {
+            z-index: 2;
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            height: 22px;
+            width: 46px;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .active-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 200%;
+            background: #3a5363;
+            transform: translate3d(-100%, 0, 0);
+            transition: transform 0.05s linear 0.17s;
+        }
+
+        .toggle-state {
+            display: none;
+        }
+
+        .indicator {
+            display: block;
+            height: 100%;
+            width: 200%;
+            background: white;
+            border-radius: 13px;
+            transform: translate3d(-75%, 0, 0);
+            transition: transform 0.35s cubic-bezier(0.85, 0.05, 0.18, 1.35);
+        }
+
+        .toggle-state:checked ~ .active-bg {
+            transform: translate3d(-50%, 0, 0);
+        }
+
+        .toggle-state:checked ~ .toggle-inner .indicator {
+            transform: translate3d(25%, 0, 0);
+        }
+    </style>
+}

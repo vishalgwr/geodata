@@ -1,0 +1,72 @@
+﻿@model IEnumerable<GeoDataReporting.Models.UserActivityTracking>
+@{
+    ViewBag.Title = "Obsolete Images";
+
+}
+
+<div class="row">
+    <div class="col-sm-10">
+        <h3 class="text-muted">Obsolete Image Deletion Log</h3>
+    </div>
+</div>
+@using (Html.BeginForm())
+{
+    @*<div class="row">
+            <div class="col-sm-3">
+                <label>Company</label>
+                @Html.DropDownList("CompanyId", null, "Select", new { @class = "form-control", required = "required" })
+            </div>
+        </div>*@
+}
+<div class="row">
+    <div class="col-sm-12 table-responsive">
+        <table class="table" id="datatable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Company</th>
+                    <th>RepId</th>
+                    <th>DeletedBy</th>
+                    <th>DeletedCount</th>
+                    <th>DeletedOn</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var cname_count = item.ActivityDetail.Split('#');
+                <tr>
+                    <td>#</td>
+                    <td>@cname_count[0]</td>
+                    <td>@item.RepId</td>
+                    <td>@item.LoggedInUser</td>
+                    <td>@cname_count[1]</td>
+                    <td>@item.CreatedOn</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts
+{
+    <script>
+        $(function () {
+            $("#datatable").DataTable({
+                "lengthMenu": [100],
+            });
+            $('#CompanyId').change(function () {
+                location.href = location.href.split('?')[0] + '?companyId=' + escape(this.value);
+            });
+        });
+    </script>
+    <style>
+        .inactive {
+            color: red;
+        }
+
+        .btn {
+            padding-top: 20px;
+        }
+    </style>
+}

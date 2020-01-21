@@ -1,0 +1,313 @@
+﻿@model IEnumerable<GeoDataReporting.Models.UserActivityTracking>
+@{
+    /**/
+
+    ViewBag.Title = "Company Log";
+
+}
+
+<div class="row">
+    <div class="col-sm-3">
+        <h3 class="text-muted">Company Updation Log</h3>
+    </div>
+</div>
+@using (Html.BeginForm())
+{
+    <div class="row">
+        <div class="col-sm-3">
+            <label>Company</label>
+            @Html.DropDownList("CompanyId", null, "Select", new { @class = "form-control", required = "required" })
+        </div>
+        <div class="col-sm-3">
+            <label>Log1</label>
+            @Html.DropDownList("Log", Enumerable.Empty<SelectListItem>(), "Select", new { @class = "form-control", required = "required" })
+        </div>
+        <div class="col-sm-3">
+            <label>Log2</label>
+            @Html.DropDownList("Log2", Enumerable.Empty<SelectListItem>(), "Select", new { @class = "form-control", required = "required" })
+        </div>
+    </div>
+    <br />
+    <b class="red">Note-:</b>
+    <ol class="red">
+        <li>
+            Comparison is applicable for only “Company Configuration, Contact Information, Pack/Price Labels, Order Configuration and Email & Layout”
+        </li>
+        <li>
+            Comparison will not work with Pack/Price Labels. Manual check would be required.
+        </li>
+    </ol>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel-group">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a href="#kv" data-toggle="collapse">Configuration Keys</a>
+                        </h4>
+                    </div>
+                    <div id="kv" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    @Html.TextBox("Search1", null, new { @class = "form-control", placeholder = "Search Configuration Keys" })
+                                </div>
+                                <div class="col-sm-7 text-center">
+                                    <h3 style="margin:unset" class="text-primary">Comparison from selected Json</h3>
+                                </div>
+                            </div>
+                            <span class="red" id="msg"></span>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="tblKeys">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Key</th>
+                                            <th>Value from <span id="spnvalue1"></span></th>
+                                            <th>Value to <span id="spnvalue2"></span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="panel-group">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a href="#ppk" data-toggle="collapse">PackPrice Keys</a>
+                        </h4>
+                    </div>
+                    <div id="ppk" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div class="col-sm-2">
+                                @Html.TextBox("Search2", null, new { @class = "form-control", placeholder = "Search PackPrice Keys" })
+                            </div>
+                            <div class="col-sm-8">
+                                <b>Values from <span id="spnpp"></span></b>
+                            </div>
+                            <div class="col-sm-12 table-responsive">
+                                <table class="table table-bordered" id="tblListKeys">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Type</th>
+                                            <th>LabelName</th>
+                                            <th>FieldName</th>
+                                            <th>IsDefault</th>
+                                            <th>IsSelectable</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts
+{
+    <script>
+        var data = {},
+            meta = {
+                company: {},
+                packPrice: {
+                    "PCL": "",
+                    "PCORL": "",
+                    "GTL": "",
+                    "PRL": "",
+                    "PRLT": "",
+                    "PRORL": "",
+                    "EFF": ""
+                }
+            };
+        //setData()
+        $(function () {
+            $.get('@Url.Action("Download","Home")?path=C:\\mSellerUtilities\\iPadLogs\\meta\\Company_meta.json')
+                    .then(m=>meta = m)
+            $('#CompanyId').change(function (el) {
+                setData();
+                const v = this.value;
+                const logs = $('#Log').html('<option value>Select</option>');
+                const logs2 = $('#Log2').html('<option value>Select</option>');
+                if (!v) {
+                    return;
+                }
+                $.get('Logs?startswith=company_'+v+'_&path=C:\\mSellerUtilities\\iPadLogs\\company')
+                    .then(function (files) {
+                        $(files).each(function (i, e) {
+                            const arr = e.split('\\');
+                            logs.append('<option value="' + e + '">' + arr[arr.length - 1] + '</option>')
+                            logs2.append('<option value="'+e+'">'+arr[arr.length-1]+'</option>')
+                        })
+                    })
+            });
+            $('#Log').change(function () {
+                if (!this.value) {
+                    $('#Log2').val('')
+                    setData();
+                    return;
+                }
+
+                $.get('@Url.Action("Download","Home")?path=' + this.value)
+                    .then(d => {
+                        $('#spnvalue1').text(this.value.split('\\')[4].split('_')[2] + ' - (User: ' + d.userName + ')');
+                        $('#spnpp').text(this.value.split('\\')[4].split('_')[2]);
+                        d.company.LastModifiedBy = d.userName; return d;
+                    })
+                    .then(setData)
+            });
+            $('#Log2').change(function () {
+                if (!$('#Log').val()) {
+                    alert('Please select Log1 file first.');
+                    this.value = '';
+                }
+                if (!this.value) {
+                    data.company2 = {};
+                    setData(data)
+                    return;
+                }
+
+                $.get('@Url.Action("Download","Home")?path=' + this.value)
+                    .then(data2 => {
+                        $('#spnvalue2').text(this.value.split('\\')[4].split('_')[2] + ' - (User: ' + data2.userName+')');
+                        data2.company.LastModifiedBy = data2.userName;
+                        data.company2 = data2.company;
+                        setData(data)
+                    })
+            });
+            $("#Search1, #Search2").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $(this).closest('.panel-body').find("tbody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+        // global func
+        function setData(newData) {
+            if (!newData) {
+                data = {
+                    company: {},
+                    company2: {},
+                    packPrice: [],
+                    userName: ''
+                }
+            }
+            else {
+                data = { ...data, ...newData };
+            }
+            $("#Search1, #Search2").val('');
+            keyBind(data.company, data.company2)
+            keyListBind(data.packPrice)
+        }
+        function keyBind(company, company2) {
+            var tbody = $('#tblKeys tbody').html('');
+            let count = 0;
+            for (var key in company) {
+                const v2 = company2.hasOwnProperty(key) ? company2[key] : null;
+                const cls = v2 == null || (v2 == company[key]) || key == 'StartDate' || key =='ModifiedOn' ? '' : 'red';
+                count += cls == 'red' ? 1 : 0;
+                const tr = $('<tr/>');
+
+                $('<td/>').text(cls == 'red'?'$':'#').appendTo(tr);
+                $('<td/>').text(key).appendTo(tr);
+                $('<td/>').text(parse(company[key])).addClass(cls).appendTo(tr);
+                $('<td/>').text(parse(v2)).addClass(cls).appendTo(tr);
+                tr.appendTo(tbody);
+            }
+            // display changed count
+            //if (count > 0)
+            //    $('#msg').text(`Total modified keys are ${count}`)
+            //else {
+            //    $('#msg').text('')
+            //}
+        }
+        function keyListBind(packprices) {
+            var tbody = $('#tblListKeys tbody').html('');
+            for (var key of packprices) {
+                var tr = $('<tr/>');
+                tr.addClass(key.Type)
+                tr.attr('title', JSON.stringify(key))
+
+                $('<td/>').text('#').appendTo(tr);
+                $('<td/>').text(meta.packPrice[key.Type]).appendTo(tr);
+                $('<td/>').text(key.LabelName).appendTo(tr);
+                $('<td/>').text(key.FieldName).appendTo(tr);
+                $('<td/>').text(key.IsDefault).appendTo(tr);
+                $('<td/>').text(key.IsSelectable).appendTo(tr);
+                $('<td/>').text(key.Status).appendTo(tr);
+                tr.appendTo(tbody);
+            }
+        }
+        function parse(value) {
+            if (typeof value === "boolean") {
+                return value? 'Checked': 'Not-Checked'
+            }
+            return value;
+        }
+    </script>
+    <style>
+        .inactive {
+            color: red;
+        }
+
+        .btn {
+            padding-top: 20px;
+        }
+
+        #Search1, #Search2 {
+            width: 200px
+        }
+
+        .table-responsive {
+            height: 500px;
+            overflow-y: scroll
+        }
+
+        .red {
+            color: red;
+        }
+
+        td.red {
+            background: #FFC4C1;
+        }
+
+        .PCL {
+            background-color: lightblue;
+        }
+
+        .PCORL {
+            background-color: lightgray;
+        }
+
+        .PRL {
+            background-color: lightcoral;
+        }
+
+        .PRLT {
+            background-color: lightgreen;
+        }
+
+        .PRORL {
+            background-color: lightblue;
+        }
+
+        .EFF {
+            background-color: lightskyblue;
+        }
+
+        .GTL {
+            background-color: lightsalmon;
+        }
+    </style>
+}

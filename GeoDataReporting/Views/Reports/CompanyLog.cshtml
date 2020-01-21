@@ -1,0 +1,66 @@
+﻿@model IEnumerable<GeoDataReporting.Models.tblCompany>
+@{
+    ViewBag.Title = "Company Log";
+    var fromDate = DateTime.Now.AddDays(-180);
+}
+
+<div class="row">
+    <div class="col-sm-10">
+        <h3 class="text-muted">Company Log</h3>
+    </div>
+    @*<div class="col-sm-1 pull-right">
+        <button style="float:right;margin-top:5px" onclick="history.back()">Back</button>
+    </div>*@
+</div>
+
+<div class="row">
+    <div class="col-sm-12 table-responsive">
+        <table class="table" id="datatable">
+            <thead>
+                <tr>
+                    <th>CompanyId</th>
+                    <th>CompanyCode</th>
+                    <th>Name</th>
+                    <th>IsActive</th>
+                    <th>IsDeleted</th>
+                    <th>CreatedOn</th>
+                    @*<th>Last Updated</th>*@
+                    @*<th>Updated By</th>*@
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Where(f=>f.CreateDate>fromDate).OrderByDescending(o => o.CreateDate))
+                {
+                <tr title="Id @item.CompanyId" class="@(item.isActive||!item.isDeleted?"":"inactive")">
+                    <td>@item.CompanyId</td>
+                    <td>@item.CompanyCode</td>
+                    <td>@item.Name</td>
+                    <td>@item.isActive</td>
+                    <td>@item.isDeleted</td>
+                    <td>@item.CreateDate.ToString("yyyy/MM/dd hh:mm:ss")</td>
+                    @*<td>@item.ModifiedOn.Value.ToString("yyyy/MM/dd hh:mm:ss")</td>*@
+                    @*<td>@item.Address1</td>*@
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts
+{
+    <script>
+        $(function () {
+            $
+        }); ("#datatable").DataTable({
+            "lengthMenu": [100]
+        });
+    </script>
+    <style>
+        /*.active{
+            color:green;
+        }*/
+        .inactive {
+            color: red;
+        }
+    </style>
+}

@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    @RenderSection("scripts", required: false)
+    <style>
+        .btn-link {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        .dt-buttons {
+            float: right;
+            margin-left: 4px;
+            line-height: 135%;
+        }
+
+        a.active {
+            color: dimgray;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+    </style>
+    <style>
+        .loader {
+            border: 10px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 10px solid #3498db;
+            width: 50px;
+            height: 50px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+            /*custom by vishal*/
+            margin: auto;
+        }
+
+        /* Safari */
+        @@-webkit-keyframes spin {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @@keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .text-disabled {
+            color: gray;
+            font-style: italic;
+        }
+
+        input[type="checkbox"].input-lg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .dt-buttons {
+            text-align: right;
+            margin-bottom: 5px;
+        }
+
+        span.red_dot {
+            width: 10px;
+            height: 10px;
+            background: red;
+            display: inline-block;
+            border-radius: 100%;
+        }
+
+        span.green_dot {
+            width: 10px;
+            height: 10px;
+            background: #6BBD36;
+            display: inline-block;
+            border-radius: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p class="site-title">
+                    <img src="~/Content/img/mseller-logo.jpg" style="height:35px;width:35px;position:relative; margin-left:6.5px" />
+                    mSeller <small>Reports</small>
+                </p>
+            </div>
+            <div class="float-right">
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        @if (Request.IsAuthenticated)
+                        {
+                            <li>@Html.ActionLink("Home", "Index", "Dashboard")</li>
+                            <li>@Html.ActionLink("Geo-Data", "Index", "GeoData")</li>
+                            <li>@Html.ActionLink("Version Tracking", "VersionTracking", "Reports")</li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Logs
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>@Html.ActionLink("Company Logs", "CompanyLog", "Reports")</li>
+                                    <li>@Html.ActionLink("User Logs", "UserLog", "Reports")</li>
+                                    <li>@Html.ActionLink("Order Logs", "Index", "BatchReports")</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Obsolete Images
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>@Html.ActionLink("Retrive/Delete Obsolete Images", "Index", "CatalogMgr")</li>
+                                    <li>@Html.ActionLink("Obsolete Images Delete Logs", "Activities", "CatalogMgr")</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    App Keys
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>@Html.ActionLink("Company Level Keys", "Companies", "AppKeys")</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Activity Log
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>@Html.ActionLink("Company", "Company", "ActivityLog")</li>
+                                    <li>@Html.ActionLink("User", "User", "ActivityLog")</li>
+                                    <li>@Html.ActionLink("General Config", "GeneralConfig", "ActivityLog")</li>
+                                    <li>@Html.ActionLink("Theme Config", "ThemeConfig", "ActivityLog")</li>
+                                </ul>
+                            </li>
+                            <li>@Html.ActionLink("Log Off", "LogOff", "Account")</li>
+                        }
+                        else
+                        {
+                            <li>@Html.ActionLink("Log In", "Login", "Account")</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div id="body" class="">
+        @RenderSection("featured", required: false)
+        <section class="main-content clear-fix ">
+            @RenderBody()
+        </section>
+    </div>
+    <footer>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p>&copy; @DateTime.Now.Year - Geodata Utility</p>
+            </div>
+        </div>
+    </footer>
+
+    <link href="~/Scripts/dataTables/css/jquery.dataTables-old.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="~/Scripts/dataTables/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.html5.min.js"></script>
+    <script>
+        $.extend(true, $.fn.dataTable.defaults, {
+            dom: 'lBfrtip',
+            "order": [],
+            buttons: [
+                'csvHtml5'
+            ]
+        });
+        @*$(document).ready(function () {
+            window.speechSynthesis.speak(new window.SpeechSynthesisUtterance('Hi User. Welcome to mSeller Reporting'))
+            $('.navbar-nav a[href*="@Url.Action("")"]')[0].classList.add('active')
+        })*@
+    </script>
+</body>
+</html>

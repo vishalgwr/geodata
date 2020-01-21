@@ -1,0 +1,167 @@
+﻿@model IEnumerable<String>
+@{
+    ViewBag.Title = "Obsolete Images";
+    var fromDate = DateTime.Now.AddDays(-180);
+
+}
+
+<div class="row">
+    <div class="col-sm-10">
+        <h3 class="text-muted">Obsolete Images Search</h3>
+        @*Load Time : @(ViewBag.LoadTime==null?0d: (ViewBag.LoadTime as TimeSpan?).Value.TotalMilliseconds)*@
+    </div>
+</div>
+@using (Html.BeginForm())
+{
+    <div class="row">
+        <div class="col-sm-3">
+            <label>Company</label>
+            @Html.DropDownList("CompanyId", null, "Select", new { @class = "form-control", required = "required" })
+        </div>
+        <div class="col-sm-2">
+            <label>RepId</label>
+            @Html.DropDownList("RepId", null, "Select", new { @class = "form-control", required = "required" })
+        </div>
+        <div class="col-sm-1">
+            @if (ViewBag.Path != null)
+            {
+                <a href="#" data-path="@ViewBag.Path" id="btnDownloadKeptCsv">View Remaining Images</a>
+            }
+
+        </div>
+        <div class="col-sm-5 pull-right">
+            <input type="submit" class="btn" onclick="onSubmit()" value="Fetch Obsolete Images" />
+            @if (Request.HttpMethod == "POST")
+            {
+                <input type="submit" id="btnDelete" class="btn" formaction="CatalogMgr/Delete" 
+                       onclick="return confirm('Are you sure want to permanently delete obsolete images for this company? This work can not be undone later.')" value="Delete All Obsolete Images" />
+            }
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-sm-9 text-danger">
+        NOTE:-
+        <ul>
+            <li>We are picking images if NOT JPG <b>OR</b> image name neither equals to any productcode nor starts with any productcode~.</li>
+            <li>We are keeping all other files which are not an image.</li>
+            <li>Replacing <i>White Space (' ')</i> and <i>Slash ('\' or '/')</i> characters to <i>Hyphen ('-')</i> and  <i>Empty String ('')</i> respectively before comparison.</li>
+        </ul>
+    </div>
+</div>
+<div class="row loading hidden">
+    <div class="col-sm-12" style="text-align:center">
+        <i class="fa fa-refresh fa-spin" style="font-size:60px"></i>
+    </div>
+</div>
+
+@if (Request.HttpMethod == "POST")
+{
+    var length = Model.Count();
+    <div class="row loading">   
+        <div class="col-sm-3 pull-right">
+            <h3><span>Total obsolete images</span> -:@Model.Count()</h3>
+        </div>
+        <div class="col-sm-12 table-responsive">
+            <table class="table" id="datatable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>c1</th>
+                        <th>c2</th>
+                        <th>c3</th>
+                        <th>c4</th>
+                        <th>c5</th>
+                        <th>c6</th>
+                        <th>c7</th>
+                        <th>c8</th>
+                        <th>c9</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i <= (length - 1 / 10) && length > 0; i++)
+                    {
+                        var inc = i * 10;
+                        if (inc < length)
+                        {
+                            <tr>
+                                <td>@Model.ElementAt(inc++)</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                                <td>@(inc >= length ? "" : Model.ElementAt(inc++))</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+}
+@section scripts
+{
+    <script>
+        $(function () {
+            $("#datatable").DataTable({
+                "lengthMenu": [100],
+            });
+            $('#CompanyId').change(function () {
+                location.href = location.href.split('?')[0] + '?companyId=' + escape(this.value);
+            });
+            let rep = $('#RepId').val();
+            $('#RepId').change(function () {
+                if (rep == this.value)
+                    $('#btnDelete, #btnDownloadKeptCsv').show();
+                else
+                    $('#btnDelete, #btnDownloadKeptCsv').hide();
+            });
+            if ($('#RepId option').length == 1 && $('#CompanyId').val() != '') {
+                alert('Rep is not aligned.')
+            }
+
+            // download
+            $('#btnDownloadKeptCsv').click(function () {
+                let link = $(this);
+                if (this.href.includes('CatalogMg'))
+                $.get('@Url.Action("Download","Home")?path=' + escape(link.attr('data-path')))
+                    .then(function (res) {
+                        let csvContent = "data:text/csv;charset=utf-8," + res;
+                        link.attr("href", encodeURI(csvContent));
+                        link.attr("download", "remaining_imgs.csv");
+                        document.getElementById('btnDownloadKeptCsv').click()
+                        //window.open(encodeURI(csvContent));
+                    });
+            })
+        });
+        function onSubmit() {
+            if (document.forms[0].checkValidity()) {
+                $('.loading').toggleClass('hidden');
+                setTimeout(function () {
+                    $('.btn').attr('disabled', 'disabled');
+                    //$('form :input').attr('disabled', 'disabled');
+                }, 0)
+            }
+
+        }
+    </script>
+    <style>
+        .inactive {
+            color: red;
+        }
+
+        .btn {
+            padding-top: 20px;
+        }
+
+        #datatable td {
+            border: 2px solid darkgrey;
+        }
+    </style>
+}

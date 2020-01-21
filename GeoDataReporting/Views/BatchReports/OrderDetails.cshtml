@@ -1,0 +1,115 @@
+﻿@model IEnumerable<mSellerCommon.Models.BatchOrderDetail>
+@{
+    ViewBag.Title = "Order Details";
+    var disp = false;
+    if (Request.QueryString.Count > 0)
+    {
+        disp = Request.QueryString.Get("dis") == "False";
+    }
+}
+
+<div class="row">
+    <div class="col-sm-10">
+        <h3 class="text-muted">Order Details (New)</h3>
+    </div>
+    <div class="col-sm-1 pull-right">
+        <button style="float:right;margin-top:5px" onclick="history.back()">Back</button>
+    </div>
+</div>
+
+@*<h3 class="text-muted">Order Details (New)</h3>
+<button style="float:right;margin-top:5px" href="@Url.Action("Index")">Back</button>*@
+@using (Html.BeginForm())
+{<div class="row">
+        @if (!disp)
+        {
+            <div class="col-sm-2 form-group">
+                <label>Status</label>
+                @Html.DropDownList("Filter", null, "All", new { @class = "form-control" })
+            </div>
+        }
+            <div style="border-bottom:2px solid; padding-bottom:2px" class="col-sm-9 pull-right">
+                <span style="font-size:large;margin-right: 50px;"><b>Company: </b>@Request.QueryString.Get("cid")</span>
+                <span style="font-size:large;margin-right: 50px;"><b>RepId: </b>@Request.QueryString.Get("rid")</span>
+                <span style="font-size:large;margin-right: 50px;"><b>OrderNo: </b>@Request.QueryString.Get("oid")</span>
+                <span style="font-size:large;margin-right: 50px;"><b>BatchNo: </b>@Request.QueryString.Get("bno")</span>
+                <span style="float:right;font-size:large"><mark><b>Deleted Records: @ViewBag.Deleted</b></mark></span>
+                <span style="float:right;font-size:large"><mark><b>Total Records: @ViewBag.Total</b></mark></span>
+            </div>
+    </div>
+}
+<br />
+<div class="row">
+    <div class="col-sm-12 table-responsive">
+        <table class="table" id="datatable">
+            <thead>
+                <tr>
+                    <th>ProductId</th>
+                    <th>Barcode</th>
+                    <th>OrderLinePriceType</th>
+                    <th>OrderLineType</th>
+                    <th>PriceBand</th>
+                    <th>Quantity</th>
+                    <th>SalePrice</th>
+                    <th>UnitPrice</th>
+                    <th>BasePrice</th>
+                    <th>Discount</th>
+                    <th>RequiredDate</th>
+                    <th>DateSold</th>
+                    <th>ExpectedDate</th>
+                    <th>Line_Inner</th>
+                    <th>Line_No</th>
+                    <th>Line_Outer</th>
+                    <th>Line_Text</th>
+                    <th>Line_Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="@(item.IsActive == true ? "active" : "inactive")" title="Item tracking Id @item.Id">
+                        <td>@item.ProductId</td>
+                        <td>@item.Barcode</td>
+                        <td>@item.OrderLinePriceType</td>
+                        <td>@item.OrderLineType</td>
+                        <td>@item.PriceBand</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.SalePrice</td>
+                        <td>@item.UnitPrice</td>
+                        <td>@item.BasePrice</td>
+                        <td>@item.Discount</td>
+                        <td>@item.DateRequired</td>
+                        <td>@item.DateSold</td>
+                        <td>@item.DateExpected</td>
+                        <td>@item.Line_Inner</td>
+                        <td>@item.Line_No</td>
+                        <td>@item.Line_Outer</td>
+                        <td>@item.LineText</td>
+                        <td>@item.LineTotal</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts
+{
+    <script>
+        $(function () {
+            $("#datatable").DataTable({
+                "lengthMenu": [100],
+            });
+            $('#Filter').change(function () {
+                document.forms[0].submit();
+            })
+        });
+    </script>
+    <style>
+        /*.active{
+            color:green;
+        }*/
+        .inactive {
+            color: red;
+        }
+    </style>
+}

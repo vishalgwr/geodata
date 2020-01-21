@@ -1,0 +1,225 @@
+﻿@model IEnumerable<GeoDataReporting.Models.UserActivityTracking>
+@{
+    ViewBag.Title = "General Config";
+}
+
+<div class="row">
+    <div class="col-sm-3">
+        <h3 class="text-muted">General Config</h3>
+    </div>
+</div>
+@using (Html.BeginForm())
+{
+    <div class="row">
+        <div class="col-sm-3">
+            <label>Company</label>
+            @Html.DropDownList("CompanyId", null, "Select", new { @class = "form-control", required = "required" })
+        </div>
+        <div class="col-sm-3">
+            <label>Version Type</label>
+            @Html.DropDownList("ConfigType", new List<SelectListItem>() {
+           new SelectListItem(){Text="Lite", Value="Lite"},
+           new SelectListItem(){Text="Pro", Value="Pro"},
+           new SelectListItem(){Text="Enterprise", Value="Enterprise"}
+       }, "All", new { @class = "form-control", required = "required" })
+        </div>
+        <div class="col-sm-3">
+            <label>Log1</label>
+            @Html.DropDownList("Log", Enumerable.Empty<SelectListItem>(), "Select", new { @class = "form-control", required = "required" })
+        </div>
+        <div class="col-sm-3">
+            <label>Log2</label>
+            @Html.DropDownList("Log2", Enumerable.Empty<SelectListItem>(), "Select", new { @class = "form-control", required = "required" })
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel-group">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a href="#kv" data-toggle="collapse">General Config Keys</a>
+                        </h4>
+                    </div>
+                    <div id="kv" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    @Html.TextBox("Search1", null, new { @class = "form-control", placeholder = "Search Configuration Keys" })
+                                </div>
+                                <div class="col-sm-7 text-center">
+                                    <h3 style="margin:unset" class="text-primary">Comparison from selected Json</h3>
+                                </div>
+                            </div>
+                            <span class="red" id="msg"></span>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="tblKeys">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Key</th>
+                                            <th>Value from <span id="spnvalue1"></span></th>
+                                            <th>Value to <span id="spnvalue2"></span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts
+{
+    <script>
+        var data = {},
+            files = [];
+        //setData()
+        $(function () {
+            $('#CompanyId').change(function (el) {
+                setData();
+                if (!this.value) {
+                    return;
+                }
+                const v = this.value;
+                $.get('Logs?startswith=*_' + v + '_&path=C:\\mSellerUtilities\\iPadLogs\\genconfig')
+                    .then(function (files) {
+                        setData({ files })
+                        bindLogDdl()
+                    });
+            });
+            $('#ConfigType').change(function (el) {
+                const newData = {}
+                if (!this.value) {
+                    newData.genConfig = { };
+                    newData.genConfig2 = { };
+                }
+                setData(newData);
+                bindLogDdl();
+            });
+            $('#Log').change(function () {
+                if (!this.value) {
+                    $('#Log2').val('')
+                    setData();
+                    return;
+                }
+
+                $.get('@Url.Action("Download","Home")?path=' + this.value)
+                    .then(d => {
+                        $('#spnvalue1').text(this.value.split('\\')[4].split('_')[2] + ' - (User: ' + d.userName + ')');
+                        setData(d);
+                    })
+            });
+            $('#Log2').change(function () {
+                if (!$('#Log').val()) {
+                    alert('Please select Log1 file first.');
+                    this.value = '';
+                }
+                if (!this.value) {
+                    data.genConfig2 = {};
+                    setData(data)
+                    return;
+                }
+
+                $.get('@Url.Action("Download","Home")?path=' + this.value)
+                    .then(data2 => {
+                        $('#spnvalue2').text(this.value.split('\\')[4].split('_')[2] + ' - (User: ' + data2.userName + ')');
+                        data.genConfig2 = data2.genConfig;
+                        setData(data)
+                    })
+            });
+            $("#Search1, #Search2").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $(this).closest('.panel-body').find("tbody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+        // global func
+        function setData(newData) {
+            if (!newData) {
+                data = {
+                    genConfig: {},
+                    genConfig2: {},
+                    files:[]
+                }
+            }
+            else {
+                data = { ...data, ...newData };
+            }
+            $("#Search1, #Search2").val('');
+            keyBind(data)
+        }
+        function keyBind({ genConfig, genConfig2 }) {
+            var tbody = $('#tblKeys tbody').html('');
+            let count = 0;
+            for (var key in genConfig) {
+                const v2 = genConfig2.hasOwnProperty(key) ? genConfig2[key] : null;
+                const diff = v2 != null && (key !='ModifiedOn') && v2 !== genConfig[key];//? false : true;
+                const tr = $('<tr/>');
+
+                $('<td/>').text(diff ?'$':'#').appendTo(tr);
+                $('<td/>').text(key).appendTo(tr);
+                $('<td/>').text(parse(genConfig[key])).addClass(diff ? 'red':'').appendTo(tr);
+                $('<td/>').text(parse(v2)).addClass(diff ? 'red' : '').appendTo(tr);
+                tr.appendTo(tbody);
+            }
+        }
+        function parse(value) {
+            if (typeof value === "boolean") {
+                return value? 'Checked': 'Not-Checked'
+            }
+            return value;
+        }
+        function bindLogDdl() {
+            const logs = $('#Log').html('<option value>Select</option>');
+            const logs2 = $('#Log2').html('<option value>Select</option>');
+            files = data.files;
+
+            const type = $('#ConfigType').val();
+            if (type) {
+                console.log(files)
+                files = files.filter(x => x.includes(type));
+                console.log(files)
+            }
+
+            $(files).each(function (i, e) {
+                            const arr = e.split('\\');
+                            logs.append('<option value="' + e + '">' + arr[arr.length - 1] + '</option>')
+                            logs2.append('<option value="' + e + '">' + arr[arr.length-1] + '</option>')
+            })
+            console.log(files)
+        }
+    </script>
+    <style>
+        .inactive {
+            color: red;
+        }
+
+        .btn {
+            padding-top: 20px;
+        }
+
+        #Search1, #Search2 {
+            width: 200px
+        }
+
+        .table-responsive {
+            height: 500px;
+            overflow-y: scroll
+        }
+
+        .red {
+            color: red;
+        }
+
+        td.red {
+            background: #FFC4C1;
+        }
+    </style>
+}

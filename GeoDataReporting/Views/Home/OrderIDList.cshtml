@@ -1,0 +1,269 @@
+﻿@model IEnumerable<GeoDataReporting.Models.OrderList>
+@{
+    ViewBag.Title = "OrderIDList";
+}
+
+<script>
+    $(function () {
+        $('#example1').DataTable({
+            "lengthMenu": [50, 100],
+            "order": [[5, "desc"]]
+        });
+    });
+</script>
+<style>
+    .radio_container label {
+        display: inline-block;
+    }
+
+    .radio_container input {
+        display: inline-block;
+        width: auto;
+    }
+
+    td, tr {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    .top td {
+        padding-left: 66px;
+    }
+
+    .totalclass {
+        position: absolute;
+        top: 70px;
+        background: aqua;
+        padding: 5px;
+        left: auto;
+        right: 52%;
+    }
+
+    .companyclass {
+        position: absolute;
+        padding: 11px;
+        top: 133px;
+    }
+
+    .logoff {
+        border: none;
+        border-bottom: 1px solid black;
+        background: none;
+        position: absolute;
+        top: 2%;
+        right: 1%;
+    }
+
+    #Batchno {
+        width: 300px;
+        display: inline
+    }
+</style>
+<h3 class="text-muted">Orders</h3>
+<div class="row">
+    @using (Html.BeginForm("GetOrderList", "Home", FormMethod.Post))
+    {
+        <div class="col-sm-4">
+            <div id="r1" class="radio_container" style="border-bottom: 2px solid darkblue;">
+                <label>Select Option</label>
+                @Html.RadioButton("Type", "SelectedDate", true, new { @onClick = "validate(this)" })
+            </div>
+            <div class="form-group">
+                <label>From Date</label>
+                @Html.TextBox("fromDate", string.Empty, new { @type = "date", @class = "form-control" })
+            </div>
+            <div class="form-group">
+                <label>To Date</label>
+                @Html.TextBox("toDate", string.Empty, new { @type = "date", @class = "form-control" })
+            </div>
+            <input type="submit" class="btn pull-right" value="Submit" />
+        </div>
+        <div class="col-sm-4">
+            <div id="r2" class="radio_container" style="border-bottom: 2px solid darkblue;">
+                <label>Select Option</label>
+                @Html.RadioButton("Type", "Defineddate", true, new { @onClick = "validate(this)" })
+            </div>
+            <div class="form-group">
+                <label>Select Range</label>
+                @Html.DropDownList("Option", new SelectList(
+      new List<Object>{
+             new { value = 1 , text = "Today"  },
+             new { value = 2 , text = "Last 3 days" },
+             new { value = 3 , text = "Last 7 days" },
+        },
+      "value",
+      "text",
+       1), new { @class = "form-control", @style = "width: 100% !important;", @id = "ddlHeaderMenuType" })
+            </div>
+            <div class="">
+                <div class="form-group">
+                    <label>Select Company</label>
+                    @Html.DropDownList("company", null,"Select Company", new { @class = "form-control", @onchange = "FillModel(this.value)" })
+                </div>
+                <div>
+                    <label>Select Repid</label>
+                    @Html.DropDownList("Repid", Enumerable.Empty<SelectListItem>(), "--Select Repid--", new { @class = "form-control" })
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-sm-4 ">
+        @using (Html.BeginForm("GetOrderList2", "Home", FormMethod.Post))
+        {
+            <div class="form-group">
+                <div id="r3" class="radio_container" style="border-bottom: 2px solid darkblue;">
+                    <label>Search</label>  <span style="margin-left:180px;font-size:large"><mark><b>Total Records: @ViewBag.noOfOrder</b></mark></span>
+                </div>
+                <label>Enter Keyword</label> <br />
+                @Html.TextBox("Batchno", string.Empty, new { @placeholder = "Enter OrderId or Batch No", @class = "form-control" })
+                <input type="submit" class="btn" value="Search" />
+            </div>
+        }
+    </div>
+</div>
+
+<div class="box box-primary">
+    <div class="box-body">
+        <table id="example1" class="table table-bordered table-striped" style="table-layout: fixed; border: 1px solid #808080;">
+            <thead>
+                <tr>
+                    <th class="datatable-nosort">Company</th>
+                    <th class="datatable-nosort">Rep Id & Customer Code</th>
+                    <th class="datatable-nosort">Order ID</th>
+                    <th class="datatable-nosort">Order Date</th>
+                    <th class="datatable-nosort">Trans Created On</th>
+                    <th class="datatable-nosort">Trans sent on server</th>
+                    <th class="datatable-nosort">Batch No</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(mbox => item.Company)
+                        </td>
+                        <td style="width: 39%;">
+                            @Html.DisplayFor(mbox => item.EmployeeID)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderID)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(mbox => item.OrderDate)
+                        </td>
+
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(item.SaveTransaction))
+                            {
+                                <span class="red_dot"></span>
+                            }
+                            else
+                            {
+                                <span class="green_dot"></span>
+                                @Html.DisplayFor(mbox => item.SaveTransaction)
+                            }
+                        </td>
+
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(item.SendTransaction))
+                            {
+                                <span class="red_dot"></span>
+                            }
+                            else
+                            {
+                                <span class="green_dot"></span>
+                                @Html.DisplayFor(mbox => item.SendTransaction)}
+                        </td>
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(item.BatchNo))
+                            {
+                                <span class="red_dot"></span>
+                            }
+                            else
+                            {<span class="green_dot"></span>
+
+                                <a href="@Url.Action("OrderLog", "Home", new { BatchNo = item.BatchNo, Orderid = item.OrderID })">@Html.DisplayFor(mbox => item.BatchNo)</a>}
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<style>
+    .content-wrapper {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+    td, tr {
+        /*border: 1px solid #808080;*/
+    }
+
+    span.red_dot {
+        width: 10px;
+        height: 10px;
+        background: red;
+        display: inline-block;
+        border-radius: 100%;
+    }
+
+    span.green_dot {
+        width: 10px;
+        height: 10px;
+        background: #6BBD36;
+        display: inline-block;
+        border-radius: 100%;
+    }
+
+    .stock-level-details span.green_dot {
+        background: #6BBD36;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+       var companyid= $('#company').val();
+       FillModel(companyid);
+    });
+    //#c3f1c3($('input[name=gender]:checked').length > 0) {
+    function validate(e) {
+        var id = e.parentElement.id;
+
+        if (id == "r1") {
+            $(e.parentElement).css("background", "#c3f1c3");
+            $("#r2").css("background", "#f2f2f2");
+        }
+        if (id == "r2") {
+            $("#r1").css("background", "#f2f2f2");
+            $(e.parentElement).css("background", "#c3f1c3");
+        }
+    }
+    function FillModel(selectedValue) {
+        if (selectedValue == '') {
+            var optionhtml1 = '<option value="' +
+                0 + '">' + "--Select RepID--" + '</option>';
+            $("#Repid").html(optionhtml1);
+            return;
+        }
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetRepid", "Home")",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            data: { "repid": selectedValue },
+            success: function (data) {
+                $.each(data, function (i) {
+
+                    var optionhtml = '<option value="' +
+                data[i].Value + '">' + data[i].Text + '</option>';
+                    $("#Repid").append(optionhtml);
+                });
+            }
+        });
+
+
+    }
+</script>

@@ -1,0 +1,362 @@
+﻿@model GeoDataReporting.Models.mSellerDemoLiveEntities
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    <h3 class="text-muted">Dashboard</h3>
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <div class="panel-left">
+                    <i class="fa fa-building fa-5x"></i>
+                </div>
+                <div class="panel-right">
+                    <h3>@Model.tblCompanies.Where(c => c.isActive && !c.isDeleted).Count()</h3>
+                    <strong>Active Companies</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <div class="panel-left">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="panel-right">
+                    <h3>@Model.tblDevices.Count()</h3>
+                    <strong>Active Devices</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <div class="panel-left">
+                    <i class="fa fa-key fa-5x"></i>
+                </div>
+                <div class="panel-right">
+                    <h3>
+                        @Model.tblLicenses.Where(c =>
+               (c.EndDate >= DateTime.Now)
+               || (c.EndDate == null)).Count()
+                    </h3>
+                    <strong>Active License</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <div class="panel-left">
+                    <i class="fa fa-users fa-5x"></i>
+                </div>
+                <div class="panel-right">
+                    <h3>@Model.TblUsers.Where(c => c.IsActive && c.IsDeleted == false).Count()</h3>
+                    <strong>Active Users</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="bg-white">
+                <canvas class="hidden0" id="deviceVersionDiv" style="height:40vh; width:80vw"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <label>Licenses - Expired Recently..</label>
+                <div class="list-group" id="licenseExpiredDiv">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <label>Activity - Last Sync</label>
+                <div class="list-group" id="LastSyncActivityDiv">
+                    <div class="loader"></div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <label>Activity - Last Transaction Sent</label>
+                <div class="list-group" id="lastSentTnxUsersDiv">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 hidden">
+            <div class="bg-white">
+                <label>Rep Users - Created Recently</label>
+                <div class="list-group" id="lastCreatedUsersDiv">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="bg-white">
+                <label>Licenses - To be expired..</label>
+                <div class="list-group" id="licenseExpiringDiv">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--scripts-->
+
+@section scripts{
+
+    <script src="~/Scripts/Chart.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            populateVersionWiseDevice();
+            setTimeout(lastCreatedUsers, 20);
+            setTimeout(lastSyncUsers, 15);
+            setTimeout(lastSentTnxUsers, 10);
+            setTimeout(populateLicense, 0);
+        });
+
+        function populateLicense() {
+            $.getJSON('@Url.Action("expiringLicenses", "Dashboard")')
+                .then(function (res) {
+                    var licenseUl = $('#licenseExpiringDiv').empty();
+                    //console.log(res);
+                    $.each(res.expiring, function (i, e) {
+                        var item = $('<div/>').addClass('list-group-item')
+                        var h4 = $('<h4/>').addClass('list-group-item-heading')
+                        //.addClass('badge');
+                        h4.text(e.LicenseKey); //<span data-toggle="tooltip" data-placement="top" class="badge" data-original-title="Ardale
+                        h4.attr('data-toggle', 'tooltip');
+                        h4.attr('data-original-title', e.Companies.join('</br>'));
+                        item.append(h4);
+                        var p = $('<p/>').addClass('list-group-item-text')
+                            .addClass('text-disabled');
+                        p.text(e.RemainingDays + ' days remaining.');
+                        item.append(p);
+
+                        licenseUl.append(item)
+                    });
+                    var licenseUl = $('#licenseExpiredDiv').empty();
+                    $.each(res.expired, function (i, e) {
+                        var item = $('<div/>').addClass('list-group-item')
+                        var h4 = $('<h4/>').addClass('list-group-item-heading')
+                        //.addClass('badge');
+                        h4.text(e.LicenseKey); //<span data-toggle="tooltip" data-placement="top" class="badge" data-original-title="Ardale
+                        h4.attr('data-toggle', 'tooltip');
+                        h4.attr('data-original-title', e.Companies.join('</br>'));
+                        item.append(h4);
+                        var p = $('<p/>').addClass('list-group-item-text')
+                            .addClass('text-disabled');
+                        p.text('expired ' + (e.RemainingDays * -1) + ' days ago.');
+                        item.append(p);
+
+                        licenseUl.append(item)
+                    });
+                    $('[data-toggle=tooltip]').tooltip({ html: true });
+                });
+
+        }
+        function populateVersionWiseDevice() {
+            $.getJSON('@Url.Action("versionWiseDevice", "Dashboard")')
+                .then(function (res) {
+                    //console.log(res);
+                    var labels = res.map(k => 'Version '+k.Key);
+                    var data = res.map(k => k.Count);
+                    var colors = res.map(k => k.Count == Math.max.apply(Math, data) ? '#8BC34A' : '#cddc39a3')
+                    var ctx = document.getElementById('deviceVersionDiv').getContext('2d');
+                    var chart = new Chart(ctx, {
+                        // The type of chart we want to create
+                        type: 'bar',
+                        height: '350',
+                        // The data for our dataset
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: "Version wise devices",
+                                backgroundColor: colors,
+                                borderColor: '#8BC34A',
+                                data: data,
+                            }]
+                        },
+
+                        // Configuration options go here
+                        options: {
+
+                        }
+                    });
+                    //chart.canvas.parentNode.style.height = '328px';
+                    ctx.height = 200;
+                });
+        }
+        function lastSyncUsers() {
+             $.getJSON('@Url.Action("lastSyncUsers", "Dashboard")')
+                 .then(function (res) {
+                     //console.log(res)
+                     var LastSyncActivityDiv = $('#LastSyncActivityDiv').empty();
+                    $.each(res, function (i, e) {
+                        var item = $('<div/>').addClass('list-group-item')
+                        var h4 = $('<h4/>').addClass('list-group-item-heading');
+                        h4.text(e.UserName + ' (RepId ' + e.Rep_Id + ')');
+
+                        var h4_c = $('<span/>').addClass('text-muted');
+                        h4_c.text(' - ' + e.CompanyName);
+                        h4.append(h4_c);
+                        item.append(h4);
+                        var p = $('<p/>').addClass('list-group-item-text');
+                        p.text('Last Synced - ');
+                        p.append($('<b>' + toTimeSpan(e.DaysAgo) + '.</b>').addClass('text-disabled'))
+                        item.append(p);
+
+                        LastSyncActivityDiv.append(item)
+                    })
+                });
+        }
+        function lastSentTnxUsers() {
+             $.getJSON('@Url.Action("lastSentTnxUsers", "Dashboard")')
+                 .then(function (res) {
+                     //console.log(res)
+                     var lastSentTnxUsersDiv = $('#lastSentTnxUsersDiv').empty();
+                    //console.log(res);
+                    $.each(res, function (i, e) {
+                        var item = $('<div/>').addClass('list-group-item')
+                        var h4 = $('<h4/>').addClass('list-group-item-heading');
+                        h4.text(e.UserName + ' (RepId ' + e.Rep_Id + ')')
+                        var h4_c = $('<span/>').addClass('text-muted');
+                        h4_c.text(' - ' + e.CompanyName);
+                        h4.append(h4_c);
+                        item.append(h4);
+                        var p = $('<p/>').addClass('list-group-item-text');
+                        p.text('Transaction Sent - ');
+                        p.append($('<b>' + toTimeSpan(e.DaysAgo) + '.</b>').addClass('text-disabled'))
+                        item.append(p);
+
+                        lastSentTnxUsersDiv.append(item)
+                    })
+                });
+        }
+        function lastCreatedUsers() {
+             $.getJSON('@Url.Action("lastCreatedUsers", "Dashboard")/20')
+                 .then(function (res) {
+                     var lastCreatedUsersDiv = $('#lastCreatedUsersDiv').empty();
+                     lastCreatedUsersDiv.css('height', '400px');
+                     lastCreatedUsersDiv.css('overflow-y', 'auto');
+
+                    $.each(res, function (i, e) {
+                        var item = $('<div/>').addClass('list-group-item')
+                        var h4 = $('<h4/>').addClass('list-group-item-heading');
+                        h4.text(e.UserName + ' (RepId ' + e.Rep_Id + ')')
+                        var h4_c = $('<span/>').addClass('text-muted');
+                        h4_c.text(' - ' + e.CompanyName);
+                        h4.append(h4_c);
+                        item.append(h4);
+                        var p = $('<p/>').addClass('list-group-item-text');
+                        p.text('Created - ');
+                        p.append($('<b>' + toTimeSpan(e.DaysAgo) + '.</b>').addClass('text-disabled'))
+                        item.append(p);
+
+                        lastCreatedUsersDiv.append(item)
+                    })
+                });
+        }
+        function toTimeSpan(ts) {
+            let tss = '';
+            if (ts.TotalSeconds > 1) {
+                if (ts.Days > 0) {
+                    tss += ts.Days + ' days ';
+                }
+                if (ts.Days == 0 && ts.Hours > 0) {
+                    tss += ts.Hours + ' hours ';
+                }
+                if (ts.Hours == 0 && ts.Minutes > 0) {
+                    tss += ts.Minutes + ' minutes ';
+                }
+                if (ts.Minutes == 0 && ts.Seconds > 0) {
+                    tss += ts.Seconds + ' seconds ';
+                }
+                tss += 'ago';
+            }
+            else {
+                tss +='just now';
+            }
+            return tss;
+        }
+    </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <style>
+        :root {
+            --graph-bg-color: #05b6d4;
+        }
+
+        .h4, h4 {
+            font-size: unset;
+        }
+
+        .container {
+            /*background-color:white;*/
+        }
+
+        .bg-white {
+            background-color: white;
+            /*margin: 12px;*/
+            border: 5px solid #dcd8d8;
+            min-height: 135px;
+        }
+
+            .bg-white label {
+                margin: 5px;
+                color: #2B2E33;
+                border-bottom: 2px solid #2B2E33;
+            }
+
+        .panel-left {
+            width: 100px;
+            height: 100px;
+            background: var(--graph-bg-color);
+            /*border: 2px solid white;*/
+            border: 2px solid #fafafa;
+            margin: 12px;
+            border-radius: 100%;
+            overflow: hidden;
+            text-align: center;
+            float: left;
+        }
+
+            .panel-left .fa-5x {
+                font-size: 3em;
+                color: rgba(255, 255, 255, 0.69);
+                padding: 29px 0;
+                margin-bottom: 30px;
+            }
+
+        .fa {
+            display: inline-block;
+            font-family: FontAwesome;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .panel-right {
+            background: transparent;
+            color: #2B2E33;
+            background-color: #fff;
+            text-align: left;
+        }
+
+            .panel-right h3 {
+                font-size: 40px;
+                color: #8A8A8A;
+            }
+
+        .row {
+            margin-top: 15px;
+        }
+    </style>
+}

@@ -1,0 +1,146 @@
+﻿@model IEnumerable<mSellerCommon.Models.VW_Orders>
+@{
+    ViewBag.Title = "Orders";
+}
+
+<h3 class="text-muted">Orders (New) </h3>
+<div>
+    <span style="float:right;font-size:large;margin-bottom: 5px"><mark><b>Orders/Batch:</b> @Model.Count()/@Model.Where(c => c.BatchNo != null).Select(s => s.BatchNo).Distinct().Count()</mark></span>
+</div>
+
+@using (Html.BeginForm())
+{
+    <div class="row">
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>From Date</label>
+                @Html.TextBox("FromDate", null, new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                <label>To Date</label>
+                @Html.TextBox("ToDate", null, new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+        <div class="col-sm-2 form-group">
+            <label>Company</label>
+            @Html.DropDownList("CompanyCode", null, "All", new { @class = "form-control" })
+        </div>
+        <div class="col-sm-2 form-group">
+            <label>RepId</label>
+            @Html.DropDownList("RepId", null, "All", new { @class = "form-control" })
+        </div>
+        <div class="col-sm-2 form-group">
+            <label>Search</label> (by Batch/Order No)
+            @Html.TextBox("Search", null, new { @class = "form-control" })
+        </div>
+        <div class="col-sm-1 pull-right">
+            <input type="submit" class="btn" value="Search" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2">
+            <label>Status</label>
+            @Html.DropDownList("Filter", null, "All", new { @class = "form-control" })
+        </div>
+    </div>
+}
+<hr />
+<div class="row">
+    <div class="col-sm-12">
+        <table class="table" id="datatable">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>RepId</th>
+                    <th>Customer</th>
+                    <th>Type</th>
+                    <th>Device Type</th>
+                    <th>Req Date</th>
+                    <th>T-SavedOn</th>
+                    <th>T-SentOn</th>
+                    <th>OrderNo</th>
+                    <th>Batch No</th>
+                    @*<th>Download</th>*@
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                <tr title="Order tracking Id @item.Id">
+                    <td>@item.CompanyCode</td>
+                    <td>@item.RepId</td>
+                    <td>@item.CustomerCode</td>
+                    <td>@item.TType</td>
+                    <td>@item.DeviceType</td>
+                    <td>@item.RequiredDate</td>
+                    <td>@item.OrderCreatedOn</td>
+                    <td>@item.SentOn</td>
+                    <td>
+                        <span class="@(item.NoOfDelProducts>0?"red_dot":"green_dot")"></span>
+                        <a style="@(item.IsActive==true?"":"color:red")" title="@(item.IsActive==true?"Order sent successfully.":"Order is held/deleted from device.")" href="@Url.Action("OrderDetails",new { Id = item.Id, filter="",cid=item.CompanyCode,rid=item.RepId,bno=item.BatchNo,oid=item.OrderNo })"><u>@item.OrderNo</u></a>
+                    </td>
+                    <td>
+                        @if (item.BatchNo != null)
+                        {
+                            <span class="green_dot"></span>
+                            <a href="@Url.Action("OrderDetails",new { Id = item.Id,dis=false, filter="active", cid=item.CompanyCode,rid=item.RepId,bno=item.BatchNo,oid=item.OrderNo })"><u>@string.Format("Batch_{0}_{1}.csv",item.RepId, item.BatchNo)</u></a>
+                            <a href="@Url.Action("DownloadBatch",new { Id = item.BatchId })">
+                                <span class="glyphicon glyphicon-download-alt"></span>
+                            </a>
+                        }
+                    </td>
+                    @*<td>
+                        @if (item.BatchNo != null)
+                        {
+                        <a href="@Url.Action("DownloadBatch",new { Id = item.BatchId })">
+                            <span class="glyphicon glyphicon-download-alt"></span>
+                        </a>
+                        }
+                    </td>*@
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts
+{
+    <script>
+        $(function () {
+            $("#datatable").DataTable({
+                "lengthMenu": [100],
+            });
+            $('#CompanyCode').change(function () {
+                var ccode = this.value;
+                var repddl = $('#RepId').html('<option value="">All</option>');
+                if (ccode !== '') {
+                    repddl.attr('disabled', 'disabled');
+                    var res = $.get('@Url.Action("GetRepIds","Home")/' + ccode, function (res) {
+                        $(res).each(function (i, e) {
+                            repddl.append('<option value="' + e.RepId + '">' + e.UserName + ' (' + e.RepId + ')' + '</option>')
+                        })
+                        console.log(res);
+                        repddl.removeAttr('disabled');
+                    });
+                }
+            })//.change();
+            $('#RepId').change(function () {
+                document.forms[0].submit();
+            })
+            $('#Filter').change(function () {
+                document.forms[0].submit();
+            })
+        });
+    </script>
+    <style>
+        /*.active {
+            color: green;
+        }*/
+
+        .inactive {
+            color: red;
+        }
+    </style>
+}
